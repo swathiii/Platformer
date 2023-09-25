@@ -4089,6 +4089,11 @@ namespace Play
 		return PlayGraphics::Instance().LoadBackground( pngFilename );
 	}
 
+	int LoadBackground2(const char* pngFilename)
+	{
+		return PlayGraphics::Instance().LoadBackground(pngFilename);
+	}
+
 	void DrawBackground( int background )
 	{
 		PlayGraphics::Instance().DrawBackground( background );
