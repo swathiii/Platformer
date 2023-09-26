@@ -6,12 +6,15 @@ int DISPLAY_WIDTH = 1280;
 int DISPLAY_HEIGHT = 750;
 int DISPLAY_SCALE = 1;
 
-const Vector2D HERO_DEFAULT_VELOCITY(5.0f, -1.f); 
+const Vector2D HERO_DEFAULT_VELOCITY(0.f, 1.f); 
+
+const Vector2D GROUND_AABB{ 1500.0f, 37.f }; 
 
 enum HeroState
 {
 	STATE_IDLE, 
 	STATE_PLAY,
+	STATE_STAND, 
 	STATE_JUMP,
 	STATE_RUN,
 	STATE_FLY,
@@ -21,6 +24,8 @@ enum HeroState
 
 struct GameState
 {
+	
+	int Gcollision = 0; 
 	HeroState herostate = STATE_IDLE; 
 };
 
@@ -47,7 +52,7 @@ void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 	Play::CreateGameObject(TYPE_HERO, { DISPLAY_WIDTH / 2, 500 }, 10, "Pink_Monster"); 
 	Play::MoveSpriteOrigin("Pink_Monster", 16, 32); 
 	//creating the ground
-	Play::CreateGameObject(TYPE_GROUND, { 0, DISPLAY_HEIGHT - 50 }, 20, "Ground");  
+	Play::CreateGameObject(TYPE_GROUND, { DISPLAY_WIDTH / 2, DISPLAY_HEIGHT }, 20, "Ground");
 
 	//creating platforms
 	const int spacing{ 500 }; 
@@ -56,20 +61,17 @@ void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 		Play::CreateGameObject(TYPE_PLATFORM, { spacing * i, DISPLAY_HEIGHT - 400 }, 20, "Platform");
 	}
 
-	//setting default velocity for the hero
-	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
-	obj_hero.velocity = HERO_DEFAULT_VELOCITY;
-
-	//acceleration
-	obj_hero.acceleration = Vector2D(0.f, 0.50f);
-
 }
 
 bool MainGameUpdate(float elapsedTime)
 {
 	UpdateHero();
-	UpdateControls();  
+
+	UpdateControls(); 
+
 	Draw(); 
+
+	groundcollision(); 
 
 	return Play::KeyDown(VK_ESCAPE); 
 
@@ -93,20 +95,23 @@ void Draw()
 	}
 
 	Play::DrawObject(Play::GetGameObjectByType(TYPE_GROUND)); 
+	Play::CentreSpriteOrigin("Ground"); 
+	GameObject& obj_ground = (Play::GetGameObjectByType(TYPE_GROUND));
+	Play::DrawRect(obj_ground.pos - GROUND_AABB, obj_ground.pos + GROUND_AABB, Play::cGreen); 
+
 
 	Play::DrawObjectRotated(Play::GetGameObjectByType(TYPE_HERO)); 
+
+	Play::DrawFontText("64px", "Collision: " + std::to_string(gamestate.Gcollision), Point2D(50, 600), Play::LEFT);
 
 	Play::PresentDrawingBuffer();  
 }
 
 void UpdateHero()
 {
+	GameObject& obj_ground = Play::GetGameObjectByType(TYPE_GROUND); 
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
 	obj_hero.scale = 1.5f; 
-	
-	obj_hero.pos += obj_hero.velocity; 
-	obj_hero.velocity += obj_hero.acceleration; 
-
 
 	switch (gamestate.herostate)
 	{
@@ -122,7 +127,15 @@ void UpdateHero()
 
 	case STATE_PLAY:
 		UpdateControls();
+		if (Play::IsColliding(obj_hero, obj_ground)) 
+		{
+			gamestate.herostate = STATE_STAND; 
+		}
 		break;
+
+	case STATE_STAND:
+		groundcollision(); 
+		break; 
 
 	}
 }
@@ -130,8 +143,17 @@ void UpdateHero()
 void UpdateControls()
 {
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
-	obj_hero.velocity = { 0,0 }; 
 	Play::SetSprite(obj_hero, "Pink_Monster", 0.05f);
+
+	//setting default velocity for the hero
+	obj_hero.velocity = { 0, 0.33f };
+
+	//acceleration
+	obj_hero.acceleration = Vector2D(0.f, 0.50f); 
+
+	obj_hero.pos += obj_hero.velocity; 
+	obj_hero.velocity += obj_hero.acceleration; 
+
 	 
 	if (Play::KeyDown(VK_RIGHT))
 	{
@@ -157,7 +179,17 @@ void UpdateControls()
 	Play::UpdateGameObject(obj_hero); 
 }
 
+
 void groundcollision()
 {
+	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
+	GameObject& obj_ground = Play::GetGameObjectByType(TYPE_GROUND);
 
+	if (Play::IsColliding(obj_hero, obj_ground))
+	{
+		gamestate.Gcollision += 1; 
+		obj_hero.pos = obj_ground.pos; 
+	} 
+
+	Play::UpdateGameObject(obj_hero); 
 }
