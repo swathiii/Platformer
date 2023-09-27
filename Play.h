@@ -3591,9 +3591,9 @@ void PlayGraphics::DrawCircle( Point2f pos, int radius, Pixel pix )
 	int y = static_cast<int>( pos.y + 0.5f );
 
 	int dx = 0;
-	int dy = radius;
+	int dy = radius; 
 
-	int d = 3 - 2 * radius;
+	int d = 3 - 2 * radius; 
 	DrawCircleOctants( x, y, dx, dy, pix );
 
 	while( dy >= dx )
