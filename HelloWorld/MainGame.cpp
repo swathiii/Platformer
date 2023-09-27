@@ -46,6 +46,7 @@ void UpdateControls();
 void Draw(); 
 void groundcollision(); 
 void UpdateCamera(); 
+void Jump(); 
 
 void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 {
@@ -159,7 +160,7 @@ void UpdateControls()
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
 	
 	//setting default velocity for the hero
-	obj_hero.velocity = { 0, 0.50f };
+	obj_hero.velocity = { 0, 1.5f };
 
 	//acceleration
 	obj_hero.acceleration = Vector2D(0.f, 0.1f); 
@@ -167,8 +168,11 @@ void UpdateControls()
 	obj_hero.pos += obj_hero.velocity; 
 	obj_hero.velocity += obj_hero.acceleration;  
 
-	 
-	if (Play::KeyDown(VK_RIGHT))
+	if (Play::KeyPressed(VK_SPACE))
+	{
+		Jump();
+	}
+	else if (Play::KeyDown(VK_RIGHT))
 	{
 		gamestate.SpriteFaceLeft = false;
 		obj_hero.velocity = { 3, 0 }; 
@@ -185,11 +189,7 @@ void UpdateControls()
 	{
 		obj_hero.velocity = { 0, 7 }; 
 	}
-	else if (Play::KeyDown(VK_SPACE))
-	{
-		obj_hero.velocity = { 2, -4 };
-		Play::SetSprite(obj_hero, "Pink_Monster", 0.7f); 
-	}
+
 	else 
 	{
 		if (!gamestate.SpriteFaceLeft)
@@ -206,6 +206,15 @@ void UpdateControls()
 	Play::UpdateGameObject(obj_hero); 
 }
 
+void Jump()
+{
+	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
+	
+	obj_hero.velocity = { 0, -14 };   
+	obj_hero.pos += obj_hero.velocity; 
+
+	Play::SetSprite(obj_hero, "Pink_Monster_Jump_8", 0.05f);
+}
 
 void groundcollision()
 {
