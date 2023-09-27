@@ -27,6 +27,7 @@ struct GameState
 {
 	
 	int Gcollision = 0; 
+	bool SpriteFaceLeft = false; 
 	HeroState herostate = STATE_IDLE; 
 };
 
@@ -52,9 +53,10 @@ void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 	Play::LoadBackground("Data\\Backgrounds\\background4.png"); 
 
 	Play::CreateGameObject(TYPE_HERO, { DISPLAY_WIDTH / 2, 500 }, 10, "Pink_Monster"); 
-	Play::MoveSpriteOrigin("Pink_Monster", 16, 32); 
-	Play::MoveSpriteOrigin("Pink_Monster_Idle_4",16, 32); 
-	Play::MoveSpriteOrigin("Pink_Monster_Walk_6", 16, 32);
+	Play::MoveMatchingSpriteOrigins("Pink_Monster", 16, 32); 
+	//Play::MoveSpriteOrigin("Pink_Monster_Idle_4",16, 32); 
+	//Play::MoveSpriteOrigin("Pink_Monster_Walk_Right_6", 16, 32);
+	//Play::MoveSpriteOrigin("Pink_Monster_Walk_Right_6", 16, 32);
 
 	//creating the ground
 	Play::CreateGameObject(TYPE_GROUND, { DISPLAY_WIDTH / 2, DISPLAY_HEIGHT }, 20, "Ground");
@@ -70,7 +72,7 @@ void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 
 bool MainGameUpdate(float elapsedTime)
 {
-	UpdateCamera(); 
+	//UpdateCamera(); 
 
 	UpdateHero();
 
@@ -156,7 +158,6 @@ void UpdateControls()
 {
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
 	
-	
 	//setting default velocity for the hero
 	obj_hero.velocity = { 0, 0.50f };
 
@@ -169,13 +170,15 @@ void UpdateControls()
 	 
 	if (Play::KeyDown(VK_RIGHT))
 	{
+		gamestate.SpriteFaceLeft = false;
 		obj_hero.velocity = { 3, 0 }; 
-		Play::SetSprite(obj_hero, "Pink_Monster_Walk_6", 0.25f);  
+		Play::SetSprite(obj_hero, "Pink_Monster_Walk_Right_6", 0.10f);  
 	}
 	else if (Play::KeyDown(VK_LEFT)) 
 	{ 
-		obj_hero.velocity = { -7, 0 }; 
-		Play::SetSprite(obj_hero, "Pink_Monster", 0.7f);
+		gamestate.SpriteFaceLeft = true; 
+		obj_hero.velocity = { -3, 0 }; 
+		Play::SetSprite(obj_hero, "Pink_Monster_Walk_Left_6", 0.10f);
 
 	}
 	else if (Play::KeyDown(VK_DOWN))
@@ -189,7 +192,16 @@ void UpdateControls()
 	}
 	else 
 	{
-		Play::SetSprite(obj_hero, "Pink_Monster_Idle_4", 0.05f); 
+		if (!gamestate.SpriteFaceLeft)
+		{
+			Play::SetSprite(obj_hero, "Pink_Monster_Idle_4", 0.05f);
+
+		}
+
+		if (gamestate.SpriteFaceLeft)
+		{
+			Play::SetSprite(obj_hero, "Pink_Monster_Idle_Left_4", 0.05f);
+		}
 	}
 	Play::UpdateGameObject(obj_hero); 
 }
@@ -215,6 +227,5 @@ void UpdateCamera()
 {
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);  
 
-	Play::SetCameraPosition((obj_hero.pos - Vector2f(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2))); 
-
+	Play::SetCameraPosition((obj_hero.pos - Vector2f(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2)));  
 }
