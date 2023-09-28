@@ -19,6 +19,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="draft.txt" />
+    <Text Include="refer.txt" />
   </ItemGroup>
 </Project>

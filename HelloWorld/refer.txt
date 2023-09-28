@@ -8,20 +8,18 @@ int DISPLAY_SCALE = 1;
 
 const Vector2D HERO_DEFAULT_VELOCITY(0.f, 1.f); 
 
-const Vector2D GROUND_AABB{ 750.0f, 40.f }; 
-const Vector2D PLATFORM_AABB{ 120.0f, 30.0f };  
-const Vector2D HERO_AABB{ 10.0f, 20.0f };
-
+const Vector2D GROUND_AABB{ 1500.0f, 65.f }; 
+const Vector2D PLATFORM_AABB{ 40.0f, 40.0f };  
 
 enum HeroState
 {
 	STATE_IDLE, 
-	STATE_FALL,
-	STATE_PLAY,  ///////// 
-	STATE_JUMP,
+	STATE_PLAY,
 	STATE_STAND, 
+	STATE_JUMP,
+	STATE_RUN,
+	STATE_FLY,
 	STATE_WALK,
-	STATE_CLIMB,
 	STATE_DEAD,
 };
 
@@ -43,24 +41,22 @@ struct GameState
 
 GameState gamestate; 
 
-//declarations
-void platforms(); 
+
 
 void UpdateHero();
 void UpdateControls();  
 void Draw(); 
 void groundcollision(); 
 void UpdateCamera(); 
-
 void Jump(); 
-void fall();  
 
 void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 {
 	Play::CreateManager(DISPLAY_WIDTH, DISPLAY_HEIGHT, DISPLAY_SCALE);
 	Play::LoadBackground("Data\\Backgrounds\\background4.png"); 
 
-	Play::CreateGameObject(TYPE_HERO, { DISPLAY_WIDTH / 2, 100 }, 10, "Pink_Monster"); 
+	Play::CreateGameObject(TYPE_HERO, { DISPLAY_WIDTH / 2, 500 }, 10, "Pink_Monster"); 
+	Play::MoveMatchingSpriteOrigins("Pink_Monster", 16, 32); 
 
 	//creating the ground
 	Play::CreateGameObject(TYPE_GROUND, { DISPLAY_WIDTH / 2, DISPLAY_HEIGHT }, 20, "Ground");
@@ -76,7 +72,7 @@ void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 
 bool MainGameUpdate(float elapsedTime)
 {
-	UpdateCamera(); 
+	//UpdateCamera(); 
 
 	UpdateHero();
 
@@ -110,39 +106,15 @@ void Draw()
 	//draw ground
 	Play::DrawObject(Play::GetGameObjectByType(TYPE_GROUND)); 
 	Play::CentreSpriteOrigin("Ground"); 
-		//aabb
 	GameObject& obj_ground = (Play::GetGameObjectByType(TYPE_GROUND));
-	Play::DrawRect(obj_ground.pos - GROUND_AABB, obj_ground.pos + GROUND_AABB, Play::cGreen); 
+	//Play::DrawRect(obj_ground.pos - GROUND_AABB, obj_ground.pos + GROUND_AABB, Play::cGreen); 
 
 	//draw obi
 	Play::DrawObjectRotated(Play::GetGameObjectByType(TYPE_HERO)); 
-	Play::CentreMatchingSpriteOrigins("Pink_Monster");
-		//aabb
-	GameObject& obj_hero = (Play::GetGameObjectByType(TYPE_HERO));
-	Play::DrawRect(obj_hero.pos - HERO_AABB, obj_hero.pos + HERO_AABB, Play::cGreen);     
-
-	platforms();
-
 
 	Play::DrawFontText("64px", "Collision: " + std::to_string(gamestate.Gcollision), Point2D(50, 600), Play::LEFT);
 
 	Play::PresentDrawingBuffer();  
-}
-
-void platforms()
-{	
-	Play::CentreSpriteOrigin("Platform");
-
-	//draw platforms
-	for (int i : Play::CollectGameObjectIDsByType(TYPE_PLATFORM))  
-	{
-		Play::DrawObject(Play::GetGameObject(i));
-	}
-	//aabb
-	for (int i : Play::CollectGameObjectIDsByType(TYPE_PLATFORM))
-	{
-		Play::DrawRect(Play::GetGameObject(i).pos - PLATFORM_AABB, Play::GetGameObject(i).pos + PLATFORM_AABB, Play::cGreen);
-	}
 }
 
 void UpdateHero()
@@ -167,10 +139,6 @@ void UpdateHero()
 		}
 		break; 
 
-	case STATE_FALL:
-		fall(); 
-		break; 
-
 	case STATE_PLAY:
 		UpdateControls(); 
 		if (obj_hero.pos.y > Ymin_surface) 
@@ -179,24 +147,12 @@ void UpdateHero()
 		}
 		break;    
 
-	case STATE_STAND:   
+	case STATE_STAND:  
 		groundcollision(); 
 		break; 
 
 	}
 
-}
-
-void fall()
-{
-	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO); 
-	obj_hero.velocity = { 0, 1.f }; 
-
-	//acceleration
-	obj_hero.acceleration = Vector2D(0.f, 0.1f); 
-
-	obj_hero.pos += obj_hero.velocity; 
-	obj_hero.velocity += obj_hero.acceleration; 
 }
 
 void UpdateControls()
@@ -289,9 +245,9 @@ void UpdateCamera()
 
 	Play::SetCameraPosition((obj_hero.pos - Vector2f(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2)));  
 	
-	//if(obj_hero.pos.y > DISPLAY_HEIGHT - 100)
-	//{
-	//	Play::SetCameraPosition((obj_hero.pos - Vector2f(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT - 30)));
-	//}
+	if(obj_hero.pos.y > DISPLAY_HEIGHT - 100)
+	{
+		Play::SetCameraPosition((obj_hero.pos - Vector2f(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT - 30)));
+	}
 	
 }

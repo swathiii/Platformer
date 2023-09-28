@@ -199,7 +199,7 @@
     <ClInclude Include="..\Play.h" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="draft.txt" />
+    <Text Include="refer.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
