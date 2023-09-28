@@ -279,14 +279,27 @@ void Collision()
 
 	//point vs aabb collision
 
+	//for (int id_platform : vPlatforms)
+	//{
+	//	GameObject& obj_platform = Play::GetGameObject(id_platform);
+
+	//	if (obj_hero.pos.y + HERO_AABB.y > obj_platform.pos.y - PLATFORM_AABB.y
+	//		&& obj_hero.pos.y - HERO_AABB.y < obj_platform.pos.y + PLATFORM_AABB.y)
+	//	{
+	//		if (obj_hero.pos.x + HERO_AABB.x > obj_platform.pos.x - PLATFORM_AABB.x
+	//			&& obj_hero.pos.x - HERO_AABB.x < obj_platform.pos.x + PLATFORM_AABB.x)
+	//		{
+	//			gamestate.Gcollision += 1;
+	//			obj_hero.velocity = { 0, 0 };
+	//			obj_hero.pos.y = (obj_platform.pos.y - PLATFORM_AABB.y - 20);   
+	//		}
+	//	}
+
+	//}
+
 	for (int id_platform : vPlatforms)
 	{
 		GameObject& obj_platform = Play::GetGameObject(id_platform);
-
-		//if (obj_hero.pos.y > obj_platform.pos.y - PLATFORM_AABB.y )
-		//{
-		//	gamestate.Gcollision += 1;
-		//}
 
 		if (obj_hero.pos.y + HERO_AABB.y > obj_platform.pos.y - PLATFORM_AABB.y
 			&& obj_hero.pos.y - HERO_AABB.y < obj_platform.pos.y + PLATFORM_AABB.y)
@@ -309,13 +322,13 @@ void groundcollision()
 {
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
 	GameObject& obj_ground = Play::GetGameObjectByType(TYPE_GROUND);
-	float Ymin_surface = obj_ground.pos.y - (GROUND_AABB.y / 2); 
 
-	if (obj_hero.pos.y > Ymin_surface) 
+	if (obj_hero.pos.y + HERO_AABB.y > obj_ground.pos.y - GROUND_AABB.y
+		&& obj_hero.pos.y - HERO_AABB.y < obj_ground.pos.y + GROUND_AABB.y)
 	{
-		obj_hero.velocity = { 0, 0 }; 
-		obj_hero.pos.y = (obj_ground.pos.y - (GROUND_AABB.y / 2));
-
+		gamestate.Gcollision += 1;
+		obj_hero.velocity = { 0, 0 };
+		obj_hero.pos.y = (obj_ground.pos.y - PLATFORM_AABB.y - 30);
 	}
 
 	Play::UpdateGameObject(obj_hero); 
