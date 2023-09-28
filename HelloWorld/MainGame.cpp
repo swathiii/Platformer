@@ -37,6 +37,7 @@ struct GameState
 {
 	
 	int Gcollision = 0; 
+	bool floorcollision = false; 
 	bool SpriteFaceLeft = false; 
 	HeroState herostate = STATE_IDLE; 
 };
@@ -51,6 +52,7 @@ void UpdateControls();
 void Draw(); 
 void groundcollision(); 
 void UpdateCamera(); 
+void Collision(); 
 
 void Jump(); 
 void fall();  
@@ -76,13 +78,15 @@ void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 
 bool MainGameUpdate(float elapsedTime)
 {
-	UpdateCamera(); 
+	//UpdateCamera(); 
 
 	UpdateHero();
 
 	UpdateControls(); 
 
 	Draw(); 
+
+	Collision(); 
 
 	groundcollision(); 
 
@@ -139,10 +143,10 @@ void platforms()
 		Play::DrawObject(Play::GetGameObject(i));
 	}
 	//aabb
-	for (int i : Play::CollectGameObjectIDsByType(TYPE_PLATFORM))
-	{
-		Play::DrawRect(Play::GetGameObject(i).pos - PLATFORM_AABB, Play::GetGameObject(i).pos + PLATFORM_AABB, Play::cGreen);
-	}
+	//for (int i : Play::CollectGameObjectIDsByType(TYPE_PLATFORM))
+	//{
+	//	Play::DrawRect(Play::GetGameObject(i).pos - PLATFORM_AABB, Play::GetGameObject(i).pos + PLATFORM_AABB, Play::cGreen);
+	//}
 }
 
 void UpdateHero()
@@ -179,7 +183,8 @@ void UpdateHero()
 		}
 		break;    
 
-	case STATE_STAND:   
+	case STATE_STAND:  
+		Collision(); 
 		groundcollision(); 
 		break; 
 
@@ -267,6 +272,39 @@ void Jump()
 	Play::SetSprite(obj_hero, "Pink_Monster_Jump_8", 0.05f);
 }
 
+void Collision()
+{
+	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO); 
+	std::vector<int> vPlatforms = Play::CollectGameObjectIDsByType(TYPE_PLATFORM);
+
+	//point vs aabb collision
+
+	for (int id_platform : vPlatforms)
+	{
+		GameObject& obj_platform = Play::GetGameObject(id_platform);
+
+		//if (obj_hero.pos.y > obj_platform.pos.y - PLATFORM_AABB.y )
+		//{
+		//	gamestate.Gcollision += 1;
+		//}
+
+		if (obj_hero.pos.y + HERO_AABB.y > obj_platform.pos.y - PLATFORM_AABB.y
+			&& obj_hero.pos.y - HERO_AABB.y < obj_platform.pos.y + PLATFORM_AABB.y)
+		{
+			if (obj_hero.pos.x + HERO_AABB.x > obj_platform.pos.x - PLATFORM_AABB.x
+				&& obj_hero.pos.x - HERO_AABB.x < obj_platform.pos.x + PLATFORM_AABB.x)
+			{
+				gamestate.Gcollision += 1;
+				obj_hero.velocity = { 0, 0 };
+				obj_hero.pos.y = (obj_platform.pos.y - PLATFORM_AABB.y - 20);   
+			}
+		}
+
+	}
+
+
+}
+
 void groundcollision()
 {
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
@@ -276,7 +314,7 @@ void groundcollision()
 	if (obj_hero.pos.y > Ymin_surface) 
 	{
 		obj_hero.velocity = { 0, 0 }; 
-		obj_hero.pos.y = (obj_ground.pos.y - (GROUND_AABB.y / 2)) - 0;
+		obj_hero.pos.y = (obj_ground.pos.y - (GROUND_AABB.y / 2));
 
 	}
 
