@@ -76,6 +76,7 @@ void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 	//creating the ground
 	Play::CreateGameObject(TYPE_GROUND, { DISPLAY_WIDTH / 2, DISPLAY_HEIGHT }, 20, "Ground");
 
+
 	//creating platforms
 	const int spacing{ 500 }; 
 	for (int i = 0; i < 5; i++)
@@ -87,7 +88,7 @@ void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 
 bool MainGameUpdate(float elapsedTime)
 {
-	//UpdateCamera();  
+	UpdateCamera();  
 
 	UpdateHero();
 
@@ -121,11 +122,14 @@ void Draw()
 	}
 
 	//draw ground
+	//Play::SetDrawingSpace(Play::SCREEN); 
 	Play::DrawObject(Play::GetGameObjectByType(TYPE_GROUND)); 
 	Play::CentreSpriteOrigin("Ground"); 
 		//aabb
 	GameObject& obj_ground = (Play::GetGameObjectByType(TYPE_GROUND));
 	Play::DrawRect(obj_ground.pos - GROUND_AABB, obj_ground.pos + GROUND_AABB, Play::cGreen); 
+	//Play::SetDrawingSpace(Play::WORLD); 
+
 
 	//draw obi
 	Play::DrawObjectRotated(Play::GetGameObjectByType(TYPE_HERO)); 
@@ -137,6 +141,10 @@ void Draw()
 	platforms(); 
 
 	stats(); 
+
+	Play::SetDrawingSpace(Play::SCREEN);
+	Play::DrawDebugText({  DISPLAY_WIDTH / 2, 100 }, "hello", Play::cWhite); 
+	Play::SetDrawingSpace(Play::WORLD);
 
 	Play::PresentDrawingBuffer();  
 }
@@ -391,13 +399,15 @@ void UpdateCamera()
 {
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);  
 
-	Play::SetCameraPosition((obj_hero.pos - Vector2f(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2)));  
-	
-	//if(obj_hero.pos.y > DISPLAY_HEIGHT - 100)
-	//{
-	//	Play::SetCameraPosition((obj_hero.pos - Vector2f(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT - 30)));
-	//}
-	
+	if (obj_hero.pos.y > 450)
+	{
+		Point2f cam_pos = Play::GetCameraPosition();
+		Play::SetCameraPosition(cam_pos);  
+	}
+	else
+	{
+		Play::SetCameraPosition((obj_hero.pos - Vector2f(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2))); 
+	}
 }
 
 void stats()
