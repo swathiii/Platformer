@@ -19,7 +19,7 @@ enum HeroState
 	STATE_FALL,
 	STATE_PLAY,  ///////// 
 	STATE_JUMP,
-	STATE_STAND, 
+	STATE_LAND,  
 	STATE_WALK,
 	STATE_CLIMB,
 	STATE_DEAD,
@@ -37,8 +37,15 @@ struct GameState
 {
 	
 	int Gcollision = 0; 
-	bool floorcollision = false; 
+	bool floorcollision = false;
+	bool platcollision = false; 
 	bool SpriteFaceLeft = false; 
+
+	const Vector2D gravity = { 0, -5 };
+	const Vector2D moveforward = { 1, 0 }; 
+	const Vector2D thrust = { 0, 3 };
+
+	
 	HeroState herostate = STATE_IDLE; 
 };
 
@@ -46,6 +53,7 @@ GameState gamestate;
 
 //declarations
 void platforms(); 
+void stats(); 
 
 void UpdateHero();
 void UpdateControls();  
@@ -56,6 +64,7 @@ void Collision();
 
 void Jump(); 
 void fall();  
+void Walk(); 
 
 void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 {
@@ -78,17 +87,17 @@ void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 
 bool MainGameUpdate(float elapsedTime)
 {
-	//UpdateCamera(); 
+	//UpdateCamera();  
 
 	UpdateHero();
 
-	UpdateControls(); 
+	//UpdateControls(); 
 
 	Draw(); 
 
-	Collision(); 
+	Collision();  
 
-	groundcollision(); 
+	groundcollision();  
 
 	return Play::KeyDown(VK_ESCAPE); 
 
@@ -125,10 +134,9 @@ void Draw()
 	GameObject& obj_hero = (Play::GetGameObjectByType(TYPE_HERO));
 	Play::DrawRect(obj_hero.pos - HERO_AABB, obj_hero.pos + HERO_AABB, Play::cGreen);     
 
-	platforms();
+	platforms(); 
 
-
-	Play::DrawFontText("64px", "Collision: " + std::to_string(gamestate.Gcollision), Point2D(50, 600), Play::LEFT);
+	stats(); 
 
 	Play::PresentDrawingBuffer();  
 }
@@ -143,10 +151,10 @@ void platforms()
 		Play::DrawObject(Play::GetGameObject(i));
 	}
 	//aabb
-	//for (int i : Play::CollectGameObjectIDsByType(TYPE_PLATFORM))
-	//{
-	//	Play::DrawRect(Play::GetGameObject(i).pos - PLATFORM_AABB, Play::GetGameObject(i).pos + PLATFORM_AABB, Play::cGreen);
-	//}
+	for (int i : Play::CollectGameObjectIDsByType(TYPE_PLATFORM))
+	{
+		Play::DrawRect(Play::GetGameObject(i).pos - PLATFORM_AABB, Play::GetGameObject(i).pos + PLATFORM_AABB, Play::cGreen);
+	}
 }
 
 void UpdateHero()
@@ -167,42 +175,52 @@ void UpdateHero()
 		
 		if (Play::KeyDown(VK_RETURN))
 		{
-			gamestate.herostate = STATE_PLAY; 
+			gamestate.herostate = STATE_FALL;  
 		}
 		break; 
 
 	case STATE_FALL:
 		fall(); 
+
+		if (gamestate.floorcollision || gamestate.platcollision)
+		{
+			gamestate.herostate = STATE_WALK;
+		}
 		break; 
 
-	case STATE_PLAY:
-		UpdateControls(); 
-		if (obj_hero.pos.y > Ymin_surface) 
+	case STATE_WALK:
+		Walk(); 
+		if (Play::KeyDown(VK_SPACE))
 		{
-			gamestate.herostate = STATE_STAND;  
+			gamestate.herostate = STATE_JUMP; 
 		}
-		break;    
+		break;  
 
-	case STATE_STAND:  
+	case STATE_JUMP:
+		Jump();
+		if (gamestate.floorcollision || gamestate.platcollision)
+		{
+			gamestate.herostate = STATE_WALK;
+		}
+		break;  
+
+	case STATE_LAND:    
 		Collision(); 
 		groundcollision(); 
 		break; 
+
+	//case STATE_PLAY:
+	//	UpdateControls(); 
+	//	//if (obj_hero.pos.y > Ymin_surface) 
+	//	//{
+	//	//	gamestate.herostate = STATE_LAND;  
+	//	//}
+	//	break;  
 
 	}
 
 }
 
-void fall()
-{
-	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO); 
-	obj_hero.velocity = { 0, 1.f }; 
-
-	//acceleration
-	obj_hero.acceleration = Vector2D(0.f, 0.1f); 
-
-	obj_hero.pos += obj_hero.velocity; 
-	obj_hero.velocity += obj_hero.acceleration; 
-}
 
 void UpdateControls()
 {
@@ -221,18 +239,13 @@ void UpdateControls()
 	{
 		Jump();
 	}
-	else if (Play::KeyDown(VK_RIGHT))
+	else if (Play::KeyDown(VK_RIGHT) )
 	{
-		gamestate.SpriteFaceLeft = false;
-		obj_hero.velocity = { 3, 0 }; 
-		Play::SetSprite(obj_hero, "Pink_Monster_Walk_Right_6", 0.10f);  
+		Walk();  
 	}
 	else if (Play::KeyDown(VK_LEFT)) 
 	{ 
-		gamestate.SpriteFaceLeft = true; 
-		obj_hero.velocity = { -3, 0 }; 
-		Play::SetSprite(obj_hero, "Pink_Monster_Walk_Left_6", 0.10f);
-
+		Walk();  
 	}
 	else if (Play::KeyDown(VK_DOWN))
 	{
@@ -259,15 +272,63 @@ void UpdateControls()
 	Play::UpdateGameObject(obj_hero); 
 }
 
+void fall()
+{
+	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
+	obj_hero.velocity = { 0, 3.98f };
+
+	//acceleration
+	obj_hero.acceleration = Vector2D(0.f, 0.1f);
+
+	obj_hero.pos += obj_hero.velocity;
+	obj_hero.velocity += obj_hero.acceleration;
+} 
+
+void Walk()
+{
+	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO); 
+	 
+	 if (Play::KeyDown(VK_RIGHT) )
+	 {
+		gamestate.SpriteFaceLeft = false;
+		obj_hero.velocity = { 3, 0 }; 
+		obj_hero.pos += obj_hero.velocity; 
+		Play::SetSprite(obj_hero, "Pink_Monster_Walk_Right_6", 0.10f);  
+	 }
+	else if (Play::KeyDown(VK_LEFT)) 
+	{ 
+		gamestate.SpriteFaceLeft = true; 
+		obj_hero.velocity = { -3, 0 };
+		obj_hero.pos += obj_hero.velocity; 
+		Play::SetSprite(obj_hero, "Pink_Monster_Walk_Left_6", 0.10f); 
+	}
+	else
+	 {
+		 if (!gamestate.SpriteFaceLeft)
+		 {
+			 Play::SetSprite(obj_hero, "Pink_Monster_Idle_4", 0.05f);
+
+		 }
+
+		 if (gamestate.SpriteFaceLeft)
+		 {
+			 Play::SetSprite(obj_hero, "Pink_Monster_Idle_Left_4", 0.05f);
+		 }
+	 }
+
+}
+
 void Jump()
 {
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
 
-	obj_hero.velocity.y -= 30; 
 
 	//obj_hero.velocity += obj_hero.acceleration;
-
-	obj_hero.pos += obj_hero.velocity; 
+	if (Play::KeyDown(VK_SPACE))
+	{
+		obj_hero.velocity += gamestate.thrust + gamestate.moveforward +  gamestate.gravity;  
+		obj_hero.pos += obj_hero.velocity; 
+	}
 
 	Play::SetSprite(obj_hero, "Pink_Monster_Jump_8", 0.05f);
 }
@@ -276,27 +337,11 @@ void Collision()
 {
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO); 
 	std::vector<int> vPlatforms = Play::CollectGameObjectIDsByType(TYPE_PLATFORM);
+	gamestate.platcollision = false;
+
+	gamestate.floorcollision = false; 
 
 	//point vs aabb collision
-
-	//for (int id_platform : vPlatforms)
-	//{
-	//	GameObject& obj_platform = Play::GetGameObject(id_platform);
-
-	//	if (obj_hero.pos.y + HERO_AABB.y > obj_platform.pos.y - PLATFORM_AABB.y
-	//		&& obj_hero.pos.y - HERO_AABB.y < obj_platform.pos.y + PLATFORM_AABB.y)
-	//	{
-	//		if (obj_hero.pos.x + HERO_AABB.x > obj_platform.pos.x - PLATFORM_AABB.x
-	//			&& obj_hero.pos.x - HERO_AABB.x < obj_platform.pos.x + PLATFORM_AABB.x)
-	//		{
-	//			gamestate.Gcollision += 1;
-	//			obj_hero.velocity = { 0, 0 };
-	//			obj_hero.pos.y = (obj_platform.pos.y - PLATFORM_AABB.y - 20);   
-	//		}
-	//	}
-
-	//}
-
 	for (int id_platform : vPlatforms)
 	{
 		GameObject& obj_platform = Play::GetGameObject(id_platform);
@@ -308,25 +353,33 @@ void Collision()
 				&& obj_hero.pos.x - HERO_AABB.x < obj_platform.pos.x + PLATFORM_AABB.x)
 			{
 				gamestate.Gcollision += 1;
+				gamestate.platcollision = true;
+				gamestate.platcollision += 1;
+
+				gamestate.floorcollision = true;
+				gamestate.floorcollision += 1;
+
 				obj_hero.velocity = { 0, 0 };
 				obj_hero.pos.y = (obj_platform.pos.y - PLATFORM_AABB.y - 20);   
+				
 			}
 		}
 
 	}
-
-
 }
 
 void groundcollision()
 {
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
 	GameObject& obj_ground = Play::GetGameObjectByType(TYPE_GROUND);
+	gamestate.floorcollision = false;
 
 	if (obj_hero.pos.y + HERO_AABB.y > obj_ground.pos.y - GROUND_AABB.y
 		&& obj_hero.pos.y - HERO_AABB.y < obj_ground.pos.y + GROUND_AABB.y)
 	{
-		gamestate.Gcollision += 1;
+		gamestate.floorcollision = true;
+		gamestate.floorcollision += 1;
+
 		obj_hero.velocity = { 0, 0 };
 		obj_hero.pos.y = (obj_ground.pos.y - PLATFORM_AABB.y - 30);
 	}
@@ -345,4 +398,28 @@ void UpdateCamera()
 	//	Play::SetCameraPosition((obj_hero.pos - Vector2f(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT - 30)));
 	//}
 	
+}
+
+void stats()
+{
+	Play::DrawFontText("64px", "Collision: " + std::to_string(gamestate.Gcollision), Point2D(50, 600), Play::LEFT); 
+
+	if (gamestate.floorcollision)
+	{
+		Play::DrawFontText("64px", "landing: " + std::to_string(gamestate.floorcollision), Point2D(50, 550), Play::LEFT);
+	}
+	else
+	{
+		Play::DrawFontText("64px", "landing: " + std::to_string(gamestate.floorcollision), Point2D(50, 550), Play::LEFT);
+	}
+
+
+	if (gamestate.floorcollision)
+	{
+		Play::DrawFontText("64px", "Planding: " + std::to_string(gamestate.platcollision), Point2D(50, 500), Play::LEFT);
+	}
+	else
+	{
+		Play::DrawFontText("64px", "Planding: " + std::to_string(gamestate.platcollision), Point2D(50, 500), Play::LEFT);
+	}
 }
