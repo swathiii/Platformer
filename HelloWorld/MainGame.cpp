@@ -40,10 +40,12 @@ struct GameState
 	bool floorcollision = false;
 	bool platcollision = false; 
 	bool SpriteFaceLeft = false; 
+	bool SpriteStanding = false; 
 
-	const Vector2D gravity = { 0, -5 };
-	const Vector2D moveforward = { 1, 0 }; 
-	const Vector2D thrust = { 0, 3 };
+	const Vector2D gravity = { 0, 2.5f };
+	const Vector2D jumpright = { 1, 0 }; 
+	const Vector2D jumpleft = { -1, 0 }; 
+	const Vector2D thrust = { 0, -3 };
 
 	
 	HeroState herostate = STATE_IDLE; 
@@ -312,6 +314,8 @@ void Walk()
 	}
 	else
 	 {
+		 gamestate.SpriteStanding = true; 
+
 		 if (!gamestate.SpriteFaceLeft)
 		 {
 			 Play::SetSprite(obj_hero, "Pink_Monster_Idle_4", 0.05f);
@@ -330,15 +334,33 @@ void Jump()
 {
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
 
-
-	//obj_hero.velocity += obj_hero.acceleration;
 	if (Play::KeyDown(VK_SPACE))
 	{
-		obj_hero.velocity += gamestate.thrust + gamestate.moveforward +  gamestate.gravity;  
-		obj_hero.pos += obj_hero.velocity; 
+		//obj_hero.velocity += gamestate.thrust + gamestate.moveforward +  gamestate.gravity;   
+		if (gamestate.SpriteStanding)
+		{
+			obj_hero.velocity += gamestate.thrust;
+			obj_hero.velocity += gamestate.gravity; 
+			obj_hero.pos += obj_hero.velocity; 
+		}
+		else if (!gamestate.SpriteFaceLeft)
+		{
+			obj_hero.velocity += gamestate.thrust * 2 ; 
+			obj_hero.velocity += gamestate.jumpright; 
+			obj_hero.velocity += gamestate.gravity;  
+			obj_hero.pos += obj_hero.velocity;
+		}
+		else if (gamestate.SpriteFaceLeft)
+		{
+			Play::SetSprite(obj_hero, "Pink_Monster_Jump_Left_8", 0.05f);
+			obj_hero.velocity += gamestate.thrust;
+			obj_hero.velocity += gamestate.jumpleft;
+			obj_hero.velocity += gamestate.gravity;
+			obj_hero.pos += obj_hero.velocity;
+		}
 	}
 
-	Play::SetSprite(obj_hero, "Pink_Monster_Jump_8", 0.05f);
+	
 }
 
 void Collision()
@@ -399,10 +421,11 @@ void UpdateCamera()
 {
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);  
 
-	if (obj_hero.pos.y > 450)
+	if (obj_hero.pos.y > 390)
 	{
 		Point2f cam_pos = Play::GetCameraPosition();
-		Play::SetCameraPosition(cam_pos);  
+
+		Play::SetCameraPosition( cam_pos );   
 	}
 	else
 	{
