@@ -30,7 +30,7 @@ enum GameObjectType
 	TYPE_HERO,
 	TYPE_PLATFORM,
 	TYPE_GROUND,
-
+	TYPE_COIN,
 };
 
 struct GameState
@@ -53,8 +53,17 @@ struct GameState
 
 GameState gamestate; 
 
+struct ObjectState
+{
+	int maxcoins = 6; 
+	Point2f coinpos{ -100, -100 }; 
+};
+
+ObjectState objectstate; 
+
 //declarations
 void platforms(); 
+void createcoins(); 
 void stats(); 
 
 void UpdateHero();
@@ -67,6 +76,7 @@ void Collision();
 void Jump(); 
 void fall();  
 void Walk(); 
+void coins(); 
 
 void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 {
@@ -86,6 +96,21 @@ void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 		Play::CreateGameObject(TYPE_PLATFORM, { spacing * i, DISPLAY_HEIGHT - 400 }, 20, "Platform");
 	}
 
+	//creating coins
+	createcoins(); 
+
+}
+
+void createcoins()
+{
+	const int coinspace{ 50 };
+
+	for (int c = 1; c < objectstate.maxcoins; c++)
+	{
+		Play::CreateGameObject(TYPE_COIN, { coinspace * c, DISPLAY_HEIGHT - 500 }, 10, "coin_gold_8");
+		Play::CentreSpriteOrigin("coin_gold");
+		GameObject& obj_coin = Play::GetGameObject(c);
+	}
 }
 
 bool MainGameUpdate(float elapsedTime)
@@ -142,13 +167,27 @@ void Draw()
 
 	platforms(); 
 
+	coins(); 
+
 	stats(); 
+
 
 	Play::SetDrawingSpace(Play::SCREEN);
 	Play::DrawDebugText({  DISPLAY_WIDTH / 2, 100 }, "hello", Play::cWhite); 
 	Play::SetDrawingSpace(Play::WORLD);
 
 	Play::PresentDrawingBuffer();  
+}
+
+void coins()
+{
+	for (int c : Play::CollectGameObjectIDsByType(TYPE_COIN))
+	{
+		Play::DrawObjectRotated(Play::GetGameObject(c));
+		GameObject& obj_coin = Play::GetGameObject(c);
+		Play::DrawCircle({ obj_coin.pos }, 10, Play::cOrange);  
+	}
+
 }
 
 void platforms()
@@ -401,7 +440,6 @@ void Collision()
 				
 			}
 		}
-
 	}
 }
 
@@ -444,6 +482,7 @@ void stats()
 {
 	Play::DrawFontText("64px", "Collision: " + std::to_string(gamestate.Gcollision), Point2D(50, 600), Play::LEFT); 
 
+	//ground collision 
 	if (gamestate.floorcollision)
 	{
 		Play::DrawFontText("64px", "landing: " + std::to_string(gamestate.floorcollision), Point2D(50, 550), Play::LEFT);
@@ -453,7 +492,7 @@ void stats()
 		Play::DrawFontText("64px", "landing: " + std::to_string(gamestate.floorcollision), Point2D(50, 550), Play::LEFT);
 	}
 
-
+	//platform collision 
 	if (gamestate.floorcollision)
 	{
 		Play::DrawFontText("64px", "Planding: " + std::to_string(gamestate.platcollision), Point2D(50, 500), Play::LEFT);
