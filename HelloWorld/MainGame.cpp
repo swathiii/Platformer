@@ -336,31 +336,38 @@ void Jump()
 
 	if (Play::KeyDown(VK_SPACE))
 	{
-		//obj_hero.velocity += gamestate.thrust + gamestate.moveforward +  gamestate.gravity;   
 		if (gamestate.SpriteStanding)
 		{
 			obj_hero.velocity += gamestate.thrust;
 			obj_hero.velocity += gamestate.gravity; 
 			obj_hero.pos += obj_hero.velocity; 
+
+			if (!gamestate.SpriteFaceLeft)
+			{
+				Play::SetSprite(obj_hero, "Pink_Monster_Jump_8", 0.10f);
+
+			}
+			
+			if (gamestate.SpriteFaceLeft)
+			{
+				Play::SetSprite(obj_hero, "Pink_Monster_Jump_Left_8", 0.10f);
+			}
 		}
 		else if (!gamestate.SpriteFaceLeft)
 		{
-			obj_hero.velocity += gamestate.thrust * 2 ; 
+			obj_hero.velocity += gamestate.thrust ; 
 			obj_hero.velocity += gamestate.jumpright; 
 			obj_hero.velocity += gamestate.gravity;  
 			obj_hero.pos += obj_hero.velocity;
 		}
 		else if (gamestate.SpriteFaceLeft)
 		{
-			Play::SetSprite(obj_hero, "Pink_Monster_Jump_Left_8", 0.05f);
 			obj_hero.velocity += gamestate.thrust;
 			obj_hero.velocity += gamestate.jumpleft;
 			obj_hero.velocity += gamestate.gravity;
 			obj_hero.pos += obj_hero.velocity;
 		}
 	}
-
-	
 }
 
 void Collision()
