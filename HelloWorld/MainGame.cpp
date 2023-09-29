@@ -47,6 +47,9 @@ struct GameState
 	const Vector2D jumpleft = { -1, 0 }; 
 	const Vector2D thrust = { 0, -3 };
 
+	Vector2D camera_focus{ 0, 0 }; 
+	int camera_cord_x = 0; 
+	int camera_cord_y = 0; 
 	
 	HeroState herostate = STATE_IDLE; 
 };
@@ -488,22 +491,43 @@ void UpdateCamera()
 {
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);  
 
-	if (obj_hero.pos.y > 390)
-	{
-		Point2f cam_pos = Play::GetCameraPosition();
+	Vector2f temp = obj_hero.pos - gamestate.camera_focus; 
+	gamestate.camera_focus += temp/2; 
 
-		Play::SetCameraPosition( cam_pos );   
-	}
-	else
+	if (gamestate.camera_focus.y > 390)
 	{
-		Play::SetCameraPosition((obj_hero.pos - Vector2f(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2))); 
+		gamestate.camera_focus.y = 390; 
+		
 	}
+
+	Play::SetCameraPosition((gamestate.camera_focus - Vector2f(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2))); 
+
+	//if (obj_hero.pos.y > 390)
+	//{
+	//	Point2f cam_pos = Play::GetCameraPosition();
+	//	//gamestate.camera_coord = cam_pos;  
+
+	//	//gamestate.camera_cord_x = gamestate.camera_coord.x;  
+	//	//gamestate.camera_cord_y = gamestate.camera_coord.y; 
+
+	//	Play::SetCameraPosition( cam_pos );   
+
+	//	//Play::SetCameraPosition((obj_hero.pos - Vector2f(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT - 70)));
+	//}
+	//else
+	//{
+	//	Play::SetCameraPosition((obj_hero.pos - Vector2f(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2))); 
+	//}
 }
 
 void stats()
 {
 	Play::DrawFontText("64px", "Collision: " + std::to_string(gamestate.Gcollision), Point2D(50, 600), Play::LEFT); 
 
+	Play::SetDrawingSpace(Play::SCREEN);
+	Play::DrawFontText("64px", "Camera Coord X: " + std::to_string(gamestate.camera_cord_x), Point2D(50, 450), Play::LEFT); 
+	Play::DrawFontText("64px", "Camera Coord Y: " + std::to_string(gamestate.camera_cord_y), Point2D(50, 400), Play::LEFT);
+	Play::SetDrawingSpace(Play::WORLD); 
 	//ground collision 
 	if (gamestate.floorcollision)
 	{
