@@ -64,6 +64,7 @@ ObjectState objectstate;
 //declarations
 void platforms(); 
 void createcoins(); 
+void createcoins2(int posx, int posy); 
 void stats(); 
 
 void UpdateHero();
@@ -86,7 +87,7 @@ void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 	Play::CreateGameObject(TYPE_HERO, { DISPLAY_WIDTH / 2, 100 }, 10, "Pink_Monster"); 
 
 	//creating the ground
-	Play::CreateGameObject(TYPE_GROUND, { DISPLAY_WIDTH / 2, DISPLAY_HEIGHT }, 20, "Ground");
+	Play::CreateGameObject(TYPE_GROUND, { DISPLAY_WIDTH / 2, DISPLAY_HEIGHT }, 20, "Ground2");
 
 
 	//creating platforms
@@ -98,18 +99,33 @@ void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 
 	//creating coins
 	createcoins(); 
+	createcoins2(640, 365); 
+	createcoins2(650, 365);
 
 }
 
-void createcoins()
+void createcoins()  
 {
 	const int coinspace{ 50 };
 
 	for (int c = 1; c < objectstate.maxcoins; c++)
 	{
-		Play::CreateGameObject(TYPE_COIN, { coinspace * c, DISPLAY_HEIGHT - 500 }, 10, "coin_gold_8");
+		Play::CreateGameObject(TYPE_COIN, { coinspace * c, DISPLAY_HEIGHT - 100 }, 10, "coin_gold_8");
 		Play::CentreSpriteOrigin("coin_gold");
 		GameObject& obj_coin = Play::GetGameObject(c);
+	
+	}
+
+
+}
+
+void createcoins2(int posx, int posy) 
+{
+	std::vector<int> vCoins = Play::CollectGameObjectIDsByType(TYPE_COIN);
+	for (int id_coins : vCoins)
+	{
+		Play::CreateGameObject(TYPE_COIN, { posx, posy }, 10, "coin_gold"); 
+		GameObject& obj_coin = Play::GetGameObject(id_coins); 
 	}
 }
 
@@ -151,10 +167,10 @@ void Draw()
 	//draw ground
 	//Play::SetDrawingSpace(Play::SCREEN); 
 	Play::DrawObject(Play::GetGameObjectByType(TYPE_GROUND)); 
-	Play::CentreSpriteOrigin("Ground"); 
+	Play::CentreSpriteOrigin("Ground2"); 
 		//aabb
-	GameObject& obj_ground = (Play::GetGameObjectByType(TYPE_GROUND));
-	Play::DrawRect(obj_ground.pos - GROUND_AABB, obj_ground.pos + GROUND_AABB, Play::cGreen); 
+	//GameObject& obj_ground = (Play::GetGameObjectByType(TYPE_GROUND));
+	//Play::DrawRect(obj_ground.pos - GROUND_AABB, obj_ground.pos + GROUND_AABB, Play::cGreen); 
 	//Play::SetDrawingSpace(Play::WORLD); 
 
 
@@ -185,6 +201,7 @@ void coins()
 	{
 		Play::DrawObjectRotated(Play::GetGameObject(c));
 		GameObject& obj_coin = Play::GetGameObject(c);
+		
 		Play::DrawCircle({ obj_coin.pos }, 10, Play::cOrange);  
 	}
 
