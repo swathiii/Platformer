@@ -99,8 +99,9 @@ void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 
 	//creating coins
 	createcoins(); 
-	createcoins2(640, 365); 
-	createcoins2(650, 365);
+	createcoins2(640, 665); 
+	createcoins2(1280, 665); 
+	//createcoins2(650, 365);
 
 }
 
@@ -125,6 +126,10 @@ void createcoins2(int posx, int posy)
 	for (int id_coins : vCoins)
 	{
 		Play::CreateGameObject(TYPE_COIN, { posx, posy }, 10, "coin_gold"); 
+		Play::CreateGameObject(TYPE_COIN, { posx + 50, posy }, 10, "coin_gold");  
+		Play::CreateGameObject(TYPE_COIN, { posx + 100, posy }, 10, "coin_gold");
+		Play::CreateGameObject(TYPE_COIN, { posx + 150, posy }, 10, "coin_gold");
+		Play::CreateGameObject(TYPE_COIN, { posx + 200, posy }, 10, "coin_gold");
 		GameObject& obj_coin = Play::GetGameObject(id_coins); 
 	}
 }
