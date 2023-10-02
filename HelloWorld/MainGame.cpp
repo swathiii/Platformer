@@ -11,13 +11,13 @@ const Vector2D HERO_DEFAULT_VELOCITY(0.f, 1.f);
 const Vector2D GROUND_AABB{ 750.0f, 40.f };
 const Vector2D PLATFORM_AABB{ 120.0f, 30.0f };
 const Vector2D HERO_AABB{ 10.0f, 20.0f };
+const Vector2D BLOCK_AABB{ 27.f, 27.f };
 
 
 enum HeroState
 {
 	STATE_IDLE,
 	STATE_FALL,
-	STATE_PLAY,  ///////// 
 	STATE_JUMP,
 	STATE_LAND,
 	STATE_WALK,
@@ -40,6 +40,7 @@ struct GameState
 	int Gcollision = 0;
 	bool floorcollision = false;
 	bool platcollision = false;
+	bool blockcollision = false;
 	bool SpriteFaceLeft = false;
 	bool SpriteStanding = false;
 
@@ -82,6 +83,7 @@ void Draw();
 void groundcollision();
 void UpdateCamera();
 void Collision();
+void BlockCollision(); 
 
 void Jump();
 void fall();
@@ -111,6 +113,8 @@ bool MainGameUpdate(float elapsedTime)
 	Collision();
 
 	groundcollision();
+
+	BlockCollision(); 
 
 	return Play::KeyDown(VK_ESCAPE);
 
@@ -422,6 +426,53 @@ void Collision()
 	}
 }
 
+void BlockCollision()
+{
+	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
+	std::vector<int> vBlocks = Play::CollectGameObjectIDsByType(TYPE_BLOCK);
+
+	for (int id_blocks : vBlocks) 
+	{
+		GameObject& obj_block = Play::GetGameObject(id_blocks);
+
+		if (obj_hero.pos.y + HERO_AABB.y > obj_block.pos.y - BLOCK_AABB.y
+			&& obj_hero.pos.y - HERO_AABB.y < obj_block.pos.y + BLOCK_AABB.y)
+		{
+			if (obj_hero.pos.x + HERO_AABB.x > obj_block.pos.x - BLOCK_AABB.x
+				&& obj_hero.pos.x - HERO_AABB.x < obj_block.pos.x + BLOCK_AABB.x)
+			{
+				gamestate.Gcollision += 1;
+				gamestate.blockcollision = true;
+				gamestate.platcollision += 1;
+
+				gamestate.floorcollision = true;
+				gamestate.floorcollision += 1;
+
+				obj_hero.velocity = { 0, 0 };
+				obj_hero.pos.y = (obj_block.pos.y - BLOCK_AABB.y - 20); 
+
+
+				float minx = obj_block.pos.x - (BLOCK_AABB.x / 2);
+				float maxx = obj_block.pos.x + (BLOCK_AABB.x / 2);
+				float miny = obj_block.pos.y - (BLOCK_AABB.y / 2);
+				float maxy = obj_block.pos.y + (BLOCK_AABB.y / 2);
+
+				//to detect collisions on the sides and bottom of the platform to fall
+				if ((obj_hero.oldPos.x < minx && obj_hero.oldPos.y > miny && obj_hero.oldPos.y < maxy)
+					|| (obj_hero.oldPos.x > maxx && obj_hero.oldPos.y < maxy && obj_hero.oldPos.y > miny)
+					|| (obj_hero.oldPos.y > maxy))
+				{
+					obj_hero.pos = obj_hero.oldPos;
+					obj_hero.velocity = gamestate.gravity;
+					obj_hero.pos += obj_hero.velocity;
+
+				}
+
+			}
+		}
+	}
+}
+
 void groundcollision()
 {
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
@@ -536,7 +587,7 @@ void blocks()
 	//aabb
 	for (int b : Play::CollectGameObjectIDsByType(TYPE_BLOCK)) 
 	{
-		Play::DrawRect(Play::GetGameObject(b).pos - PLATFORM_AABB, Play::GetGameObject(b).pos + PLATFORM_AABB, Play::cGreen); 
+		Play::DrawRect(Play::GetGameObject(b).pos - BLOCK_AABB, Play::GetGameObject(b).pos + BLOCK_AABB, Play::cRed);
 	}
 
 }
@@ -547,8 +598,8 @@ void createblocks(int posx, int posy)
 	for (int id_blocks : vBlocks)
 	{
 
-		Play::CreateGameObject(TYPE_PLATFORM, { posx, posy }, 10, "Block");
-		GameObject& obj_blocks = Play::GetGameObject(id_blocks); 
+		Play::CreateGameObject(TYPE_BLOCK, { posx, posy }, 10, "Block"); 
+		GameObject& obj_blocks = Play::GetGameObject(id_blocks);  
 
 	}
 }
@@ -623,10 +674,4 @@ void map()
 	createblocks(50, 600);
 	createblocks(250, 600); 
 	
-}
-
-void mousepos()
-{
-	Point2D mcoord = Play::GetMousePos();
-
 }
