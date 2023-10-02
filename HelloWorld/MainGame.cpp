@@ -29,6 +29,7 @@ enum GameObjectType
 {
 	TYPE_HERO,
 	TYPE_PLATFORM,
+	TYPE_BLOCK,   
 	TYPE_GROUND,
 	TYPE_COIN,
 };
@@ -66,7 +67,11 @@ ObjectState objectstate;
 
 //declarations
 void map(); 
+void blocks(); 
+void createblocks(int posx, int posy); 
+
 void platforms();
+
 void createcoins();
 void createcoins2(int posx, int posy);
 void stats();
@@ -129,7 +134,6 @@ void Draw()
 	}
 
 	//draw ground
-	//Play::SetDrawingSpace(Play::SCREEN); 
 	Play::DrawObject(Play::GetGameObjectByType(TYPE_GROUND));
 	Play::CentreSpriteOrigin("Ground2");
 	//aabb
@@ -145,11 +149,14 @@ void Draw()
 	GameObject& obj_hero = (Play::GetGameObjectByType(TYPE_HERO));
 	Play::DrawRect(obj_hero.pos - HERO_AABB, obj_hero.pos + HERO_AABB, Play::cGreen);
 
+	blocks(); 
+	
 	platforms();
 
 	coins();
 
 	stats();
+
 
 	Play::PresentDrawingBuffer();
 }
@@ -449,7 +456,6 @@ void UpdateCamera()
 	Play::SetCameraPosition((gamestate.camera_focus - Vector2f(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2)));
 }
 
-
 void coins()
 {
 	for (int c : Play::CollectGameObjectIDsByType(TYPE_COIN))
@@ -519,8 +525,47 @@ void createplatforms(int posx, int posy)
 	}
 }
 
+void blocks()
+{
+	Play::CentreSpriteOrigin("Block");
+
+	for (int b : Play::CollectGameObjectIDsByType(TYPE_BLOCK)) 
+	{
+		Play::DrawObject(Play::GetGameObject(b)); 
+	}
+	//aabb
+	for (int b : Play::CollectGameObjectIDsByType(TYPE_BLOCK)) 
+	{
+		Play::DrawRect(Play::GetGameObject(b).pos - PLATFORM_AABB, Play::GetGameObject(b).pos + PLATFORM_AABB, Play::cGreen); 
+	}
+
+}
+
+void createblocks(int posx, int posy)
+{
+	std::vector<int> vBlocks = Play::CollectGameObjectIDsByType(TYPE_BLOCK);
+	for (int id_blocks : vBlocks)
+	{
+
+		Play::CreateGameObject(TYPE_PLATFORM, { posx, posy }, 10, "Block");
+		GameObject& obj_blocks = Play::GetGameObject(id_blocks); 
+
+	}
+}
+
 void stats()
 {
+
+	Point2D mcoord = Play::GetMousePos();
+	int mouse_x = mcoord.x; 
+	int mouse_y = mcoord.y; 
+
+	//coords to place objects at
+	Play::SetDrawingSpace(Play::SCREEN);
+	Play::DrawFontText("64px", "X: " + std::to_string(mouse_x), Point2D(50, 450), Play::LEFT);
+	Play::DrawFontText("64px", "Y: " + std::to_string(mouse_y), Point2D(50, 400), Play::LEFT); 
+
+
 	Play::DrawFontText("64px", "Collision: " + std::to_string(gamestate.Gcollision), Point2D(50, 600), Play::LEFT);
 
 	//Play::SetDrawingSpace(Play::SCREEN);
@@ -547,6 +592,7 @@ void stats()
 	{
 		Play::DrawFontText("64px", "Planding: " + std::to_string(gamestate.platcollision), Point2D(50, 500), Play::LEFT);
 	}
+	Play::SetDrawingSpace(Play::WORLD);
 }
 
 void map()
@@ -564,8 +610,23 @@ void map()
 
 	//creating coins
 	createcoins();
+
 	createcoins2(640, 665);
 	createcoins2(1280, 665);
 
-	createplatforms(640, 665); 
+	//creating platforms
+//	createplatforms(640, 665); 
+
+	//creating blocks
+	Play::CreateGameObject(TYPE_BLOCK, { -100, 800 }, 20, "Block"); 
+
+	createblocks(50, 600);
+	createblocks(250, 600); 
+	
+}
+
+void mousepos()
+{
+	Point2D mcoord = Play::GetMousePos();
+
 }
