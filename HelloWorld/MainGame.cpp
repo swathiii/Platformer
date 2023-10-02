@@ -62,6 +62,7 @@ struct ObjectState
 {
 	int maxcoins = 6;
 	Point2f coinpos{ -100, -100 };
+	int CoinsCollected = 0; 
 };
 
 ObjectState objectstate;
@@ -89,6 +90,7 @@ void Jump();
 void fall();
 void Walk();
 void coins();
+void CollectCoins(); 
 
 void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 {
@@ -114,7 +116,9 @@ bool MainGameUpdate(float elapsedTime)
 
 	groundcollision();
 
-	BlockCollision(); 
+	BlockCollision();
+
+	CollectCoins(); 
 
 	return Play::KeyDown(VK_ESCAPE);
 
@@ -512,41 +516,53 @@ void coins()
 	for (int c : Play::CollectGameObjectIDsByType(TYPE_COIN))
 	{
 		Play::DrawObjectRotated(Play::GetGameObject(c));
+		
 		GameObject& obj_coin = Play::GetGameObject(c);
-
 		Play::DrawCircle({ obj_coin.pos }, 10, Play::cOrange);
+		Play::SetSprite(obj_coin, "coin_gold_8", 0.05f);   
 	}
 }
 
-void createcoins()
+void createcoins(int posx, int posy) 
 {
-	const int coinspace{ 50 };
+	//const int coinspace{ 50 };
+
+	//for (int c = 1; c < objectstate.maxcoins; c++)
+	//{
+	//	Play::CreateGameObject(TYPE_COIN, { coinspace * c, posy }, 10, "coin_gold_8");  
+
+	//	Play::CentreSpriteOrigin("coin_gold");
+	//	//GameObject& obj_coin = Play::GetGameObject(c); 
+
+	//}
+
+	//const int coinspace{ 50 };
 
 	for (int c = 1; c < objectstate.maxcoins; c++)
 	{
-		Play::CreateGameObject(TYPE_COIN, { coinspace * c, DISPLAY_HEIGHT - 100 }, 10, "coin_gold_8");
+		Play::CreateGameObject(TYPE_COIN, { posx, posy }, 10, "coin_gold_8");
+
+		posx += 50;
+
 		Play::CentreSpriteOrigin("coin_gold");
-		GameObject& obj_coin = Play::GetGameObject(c);
 
 	}
-
-
 }
 
-void createcoins2(int posx, int posy)
+void CollectCoins()
 {
+	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);         
 	std::vector<int> vCoins = Play::CollectGameObjectIDsByType(TYPE_COIN);
 	for (int id_coins : vCoins)
 	{
-		Play::CreateGameObject(TYPE_COIN, { posx, posy }, 10, "coin_gold");
-		Play::CreateGameObject(TYPE_COIN, { posx + 50, posy }, 10, "coin_gold");
-		Play::CreateGameObject(TYPE_COIN, { posx + 100, posy }, 10, "coin_gold");
-		Play::CreateGameObject(TYPE_COIN, { posx + 150, posy }, 10, "coin_gold");
-		Play::CreateGameObject(TYPE_COIN, { posx + 200, posy }, 10, "coin_gold");
-		GameObject& obj_coin = Play::GetGameObject(id_coins);
+		GameObject& obj_coin = Play::GetGameObject(id_coins); 
+		if (Play::IsColliding(obj_hero, obj_coin))
+		{
+			objectstate.CoinsCollected += 1; 
+			Play::DestroyGameObject(id_coins); 
+		}
 	}
 }
-
 
 void platforms()
 {
@@ -616,7 +632,7 @@ void stats()
 	Play::DrawFontText("64px", "X: " + std::to_string(mouse_x), Point2D(50, 450), Play::LEFT);
 	Play::DrawFontText("64px", "Y: " + std::to_string(mouse_y), Point2D(50, 400), Play::LEFT); 
 
-
+	Play::DrawFontText("64px", "Coins: " + std::to_string(objectstate.CoinsCollected), Point2D(50, 70), Play::LEFT);
 	Play::DrawFontText("64px", "Collision: " + std::to_string(gamestate.Gcollision), Point2D(50, 600), Play::LEFT);
 
 	//Play::SetDrawingSpace(Play::SCREEN);
@@ -660,10 +676,11 @@ void map()
 	}
 
 	//creating coins
-	createcoins();
+	createcoins(640, 565);
+	createcoins(1280, 565);
+	createcoins(1920, 565);
+	createcoins(0, 565);
 
-	createcoins2(640, 665);
-	createcoins2(1280, 665);
 
 	//creating platforms
 //	createplatforms(640, 665); 
