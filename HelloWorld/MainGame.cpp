@@ -74,7 +74,7 @@ void createblocks(int posx, int posy);
 
 void platforms();
 
-void createcoins(int posx, int posy);
+void createcoins(int posx, int posy, int count);   
 void stats();
 
 void UpdateHero();
@@ -395,12 +395,12 @@ void Collision()
 			if (obj_hero.pos.x + HERO_AABB.x > obj_platform.pos.x - PLATFORM_AABB.x
 				&& obj_hero.pos.x - HERO_AABB.x < obj_platform.pos.x + PLATFORM_AABB.x)
 			{
-				gamestate.Gcollision += 1;
+				//gamestate.Gcollision += 1;
 				gamestate.platcollision = true;
-				gamestate.platcollision += 1;
+				//gamestate.platcollision += 1;
 
 				gamestate.floorcollision = true;
-				gamestate.floorcollision += 1;
+				//gamestate.floorcollision += 1;
 
 				obj_hero.velocity = { 0, 0 };
 				obj_hero.pos.y = (obj_platform.pos.y - PLATFORM_AABB.y - 20);
@@ -442,12 +442,12 @@ void BlockCollision()
 			if (obj_hero.pos.x + HERO_AABB.x > obj_block.pos.x - BLOCK_AABB.x
 				&& obj_hero.pos.x - HERO_AABB.x < obj_block.pos.x + BLOCK_AABB.x)
 			{
-				gamestate.Gcollision += 1;
+				//gamestate.Gcollision += 1;
 				gamestate.blockcollision = true;
-				gamestate.platcollision += 1;
+				//gamestate.platcollision += 1;
 
 				gamestate.floorcollision = true;
-				gamestate.floorcollision += 1;
+				//gamestate.floorcollision += 1;
 
 				obj_hero.velocity = { 0, 0 };
 				obj_hero.pos.y = (obj_block.pos.y - BLOCK_AABB.y - 20); 
@@ -533,9 +533,9 @@ void coins()
 	}
 }
 
-void createcoins(int posx, int posy) 
+void createcoins(int posx, int posy, int count)  
 {
-	for (int c = 1; c < objectstate.maxcoins; c++)
+	for (int c = 1; c < count + 1 ; c++) 
 	{
 		Play::CreateGameObject(TYPE_COIN, { posx, posy }, 10, "coin_gold_8");
 
@@ -630,7 +630,7 @@ void stats()
 	Play::DrawFontText("64px", "Y: " + std::to_string(mouse_y), Point2D(50, 400), Play::LEFT); 
 
 	Play::DrawFontText("64px", "Coins: " + std::to_string(objectstate.CoinsCollected), Point2D(50, 70), Play::LEFT);
-	Play::DrawFontText("64px", "Collision: " + std::to_string(gamestate.Gcollision), Point2D(50, 600), Play::LEFT);
+	//Play::DrawFontText("64px", "Collision: " + std::to_string(gamestate.Gcollision), Point2D(50, 600), Play::LEFT);
 
 	//Play::SetDrawingSpace(Play::SCREEN);
 	//Play::DrawFontText("64px", "Camera Coord X: " + std::to_string(gamestate.camera_cord_x), Point2D(50, 450), Play::LEFT);
@@ -638,24 +638,24 @@ void stats()
 	//Play::SetDrawingSpace(Play::WORLD);
 	
 	//ground collision 
-	if (gamestate.floorcollision)
-	{
-		Play::DrawFontText("64px", "landing: " + std::to_string(gamestate.floorcollision), Point2D(50, 550), Play::LEFT);
-	}
-	else
-	{
-		Play::DrawFontText("64px", "landing: " + std::to_string(gamestate.floorcollision), Point2D(50, 550), Play::LEFT);
-	}
+	//if (gamestate.floorcollision)
+	//{
+	//	Play::DrawFontText("64px", "landing: " + std::to_string(gamestate.floorcollision), Point2D(50, 550), Play::LEFT);
+	//}
+	//else
+	//{
+	//	Play::DrawFontText("64px", "landing: " + std::to_string(gamestate.floorcollision), Point2D(50, 550), Play::LEFT);
+	//}
 
-	//platform collision 
-	if (gamestate.floorcollision)
-	{
-		Play::DrawFontText("64px", "Planding: " + std::to_string(gamestate.platcollision), Point2D(50, 500), Play::LEFT);
-	}
-	else
-	{
-		Play::DrawFontText("64px", "Planding: " + std::to_string(gamestate.platcollision), Point2D(50, 500), Play::LEFT);
-	}
+	////platform collision 
+	//if (gamestate.floorcollision)
+	//{
+	//	Play::DrawFontText("64px", "Planding: " + std::to_string(gamestate.platcollision), Point2D(50, 500), Play::LEFT);
+	//}
+	//else
+	//{
+	//	Play::DrawFontText("64px", "Planding: " + std::to_string(gamestate.platcollision), Point2D(50, 500), Play::LEFT);
+	//}
 
 	Play::SetDrawingSpace(Play::WORLD);
 
@@ -666,30 +666,54 @@ void stats()
 
 void map()
 {
-	//creating the ground
-	Play::CreateGameObject(TYPE_GROUND, { 1890, DISPLAY_HEIGHT }, 20, "Ground2");
+
 
 	//creating platforms
 	const int spacing{ 500 };
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 15; i++)
 	{
-		Play::CreateGameObject(TYPE_PLATFORM, { spacing * i, DISPLAY_HEIGHT - 400 }, 20, "Platform");
+		Play::CreateGameObject(TYPE_PLATFORM, { spacing * i, 0 }, 20, "Platform");
 	}
 
+
 	//creating coins
-	createcoins(640, 565);
-	createcoins(1280, 565);
-	createcoins(1920, 565);
-	createcoins(0, 565);
+	for (int c = 0; c < 15; c++)
+	{
+		createcoins(spacing * c, -50, 1); 
+	}
 
+	createcoins(1280, 565, 5);
+	createcoins(1920, 565, 5);
 
-	//creating platforms
-//	createplatforms(640, 665); 
 
 	//creating blocks
 	Play::CreateGameObject(TYPE_BLOCK, { -100, 800 }, 20, "Block"); 
 
-	createblocks(50, 600);
-	createblocks(250, 600); 
+
+
+
+
+
+	///////////////////    //////////////////     /////////////////////     //////////////////////////////							/////////////////////////				////////////////////////////			//////////////////////				////////////
+
+																											createblocks(750, 100);
+																						
+																						 createblocks(650, 200);
+
+							createcoins(250, 300, 1);		createcoins(350, 250, 5);
+							createblocks(250, 350);			createplatforms(450, 300); 
+
+						createcoins(150, 400, 1);			
+						createblocks(150, 450);				    
+
+				createcoins(50, 500, 1);			
+				createblocks(50, 550);				
+
+		createcoins(-50, 600, 1);
+		createblocks(-50, 650); 
 	
+ 
+	
+//creating the ground/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Play::CreateGameObject(TYPE_GROUND, { 1890, DISPLAY_HEIGHT }, 20, "Ground2"); 
 }
