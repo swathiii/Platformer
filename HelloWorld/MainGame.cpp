@@ -32,6 +32,7 @@ enum GameObjectType
 	TYPE_BLOCK,   
 	TYPE_GROUND,
 	TYPE_COIN,
+	TYPE_THORN,
 };
 
 struct GameState
@@ -43,6 +44,8 @@ struct GameState
 	bool blockcollision = false;
 	bool SpriteFaceLeft = false;
 	bool SpriteStanding = false;
+	bool SpriteHurt = false; 
+	int SpriteHit = 0; 
 
 	const Vector2D gravity = { 0, 2.5f };
 	const Vector2D jumpright = { 0.5f, 0 };
@@ -71,6 +74,10 @@ ObjectState objectstate;
 void map(); 
 void blocks(); 
 void createblocks(int posx, int posy); 
+void coins();
+void CollectCoins();
+void thorns();    
+void thorncollision(); 
 
 void platforms();
 
@@ -88,8 +95,7 @@ void BlockCollision();
 void Jump();
 void fall();
 void Walk();
-void coins();
-void CollectCoins(); 
+ 
 
 void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 {
@@ -98,8 +104,8 @@ void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 
 	Play::CreateGameObject(TYPE_HERO, { DISPLAY_WIDTH / 2, 100 }, 10, "Pink_Monster");
 
-	map(); 
-}
+	map();    
+} 
 
 bool MainGameUpdate(float elapsedTime)
 {
@@ -118,6 +124,8 @@ bool MainGameUpdate(float elapsedTime)
 	BlockCollision();
 
 	CollectCoins(); 
+
+	thorncollision();   
 
 	return Play::KeyDown(VK_ESCAPE);
 
@@ -154,6 +162,8 @@ void Draw()
 	//aabb
 	//GameObject& obj_hero = (Play::GetGameObjectByType(TYPE_HERO));
 	//Play::DrawRect(obj_hero.pos - HERO_AABB, obj_hero.pos + HERO_AABB, Play::cGreen);
+
+	thorns(); 
 
 	blocks(); 
 	
@@ -513,9 +523,9 @@ void UpdateCamera()
 	}
 
 	//right
-	if (gamestate.camera_focus.x > 3500)
+	if (gamestate.camera_focus.x > 2000)
 	{
-		gamestate.camera_focus.x = 3500;
+		gamestate.camera_focus.x = 2000;
 	}
 
 	Play::SetCameraPosition((gamestate.camera_focus - Vector2f(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2)));
@@ -617,6 +627,58 @@ void createblocks(int posx, int posy)
 	}
 }
 
+void thorns()
+{
+	for (int t : Play::CollectGameObjectIDsByType(TYPE_THORN))
+	{
+		Play::DrawObject(Play::GetGameObject(t)); 
+		GameObject& obj_thorn = Play::GetGameObject(t); 
+
+		//Play::DrawCircle({ obj_thorn.pos }, 35, Play::cGreen);  
+		Play::SetSprite(obj_thorn, "Thorn", 0.05f); 
+	}
+}
+
+void createthorns(int posx, int posy, int count) 
+{
+	for (int t = 1; t < count + 1; t++)
+	{
+		Play::CreateGameObject(TYPE_THORN, { posx, posy }, 35, "Thorn");
+
+		posx += 50;
+
+		Play::CentreSpriteOrigin("Thorn");
+
+	}
+}
+
+void thorncollision()
+{
+	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
+	std::vector<int> vThorns = Play::CollectGameObjectIDsByType(TYPE_THORN); 
+
+	for (int id_thorns : vThorns)
+	{
+		GameObject& obj_thorns = Play::GetGameObject(id_thorns); 
+		if (Play::IsColliding(obj_hero, obj_thorns))
+		{
+			gamestate.SpriteHurt = true;   
+			gamestate.SpriteHit += 1; 
+
+			Play::SetSprite(obj_hero, "Pink_Monster_Hurt_4", 0.30f); 
+
+			if (!gamestate.SpriteFaceLeft)
+			{
+				obj_hero.pos.x += -20;
+			}
+			else
+			{
+				obj_hero.pos.x += 20; 
+			}
+		}
+	}
+}
+
 void stats()
 {
 
@@ -630,6 +692,7 @@ void stats()
 	Play::DrawFontText("64px", "Y: " + std::to_string(mouse_y), Point2D(50, 400), Play::LEFT); 
 
 	Play::DrawFontText("64px", "Coins: " + std::to_string(objectstate.CoinsCollected), Point2D(50, 70), Play::LEFT);
+	Play::DrawFontText("64px", "Hits: " + std::to_string(gamestate.SpriteHit), Point2D(50, 100), Play::LEFT);
 	//Play::DrawFontText("64px", "Collision: " + std::to_string(gamestate.Gcollision), Point2D(50, 600), Play::LEFT);
 
 	//Play::SetDrawingSpace(Play::SCREEN);
@@ -667,16 +730,16 @@ void stats()
 void map()
 {
 
-
+	Play::CreateGameObject(TYPE_PLATFORM, { 0, 0 }, 20, "Platform"); 
 	//creating platforms
 	const int spacing{ 500 };
-	for (int i = 0; i < 15; i++)
+	for (int i = 0; i < 10; i++)
 	{
 		Play::CreateGameObject(TYPE_PLATFORM, { spacing * i, 0 }, 20, "Platform");
 	}
 
 
-	//creating coins
+	////creating coins
 	for (int c = 0; c < 15; c++)
 	{
 		createcoins(spacing * c, -50, 1); 
@@ -684,6 +747,8 @@ void map()
 
 	createcoins(1280, 565, 5);
 	createcoins(1920, 565, 5);
+
+	createthorns(DISPLAY_WIDTH/2, DISPLAY_HEIGHT - 50, 1);   
 
 
 	//creating blocks
@@ -710,10 +775,8 @@ void map()
 				createblocks(50, 550);				
 
 		createcoins(-50, 600, 1);
-		createblocks(-50, 650); 
-	
- 
-	
+		createblocks(-50, 650);			createthorns(160, 650, 1); 
+		createblocks(-50, 690); 		createthorns(150, 690, 2);  																																																 createblocks(2000, 690);
 //creating the ground/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Play::CreateGameObject(TYPE_GROUND, { 1890, DISPLAY_HEIGHT }, 20, "Ground2"); 
 }
