@@ -74,8 +74,7 @@ void createblocks(int posx, int posy);
 
 void platforms();
 
-void createcoins();
-void createcoins2(int posx, int posy);
+void createcoins(int posx, int posy);
 void stats();
 
 void UpdateHero();
@@ -149,13 +148,12 @@ void Draw()
 	//Play::DrawRect(obj_ground.pos - GROUND_AABB, obj_ground.pos + GROUND_AABB, Play::cGreen); 
 	//Play::SetDrawingSpace(Play::WORLD); 
 
-
 	//draw obi
 	Play::DrawObjectRotated(Play::GetGameObjectByType(TYPE_HERO));
 	Play::CentreMatchingSpriteOrigins("Pink_Monster");
 	//aabb
-	GameObject& obj_hero = (Play::GetGameObjectByType(TYPE_HERO));
-	Play::DrawRect(obj_hero.pos - HERO_AABB, obj_hero.pos + HERO_AABB, Play::cGreen);
+	//GameObject& obj_hero = (Play::GetGameObjectByType(TYPE_HERO));
+	//Play::DrawRect(obj_hero.pos - HERO_AABB, obj_hero.pos + HERO_AABB, Play::cGreen);
 
 	blocks(); 
 	
@@ -164,7 +162,6 @@ void Draw()
 	coins();
 
 	stats();
-
 
 	Play::PresentDrawingBuffer();
 }
@@ -503,9 +500,22 @@ void UpdateCamera()
 	Vector2f temp = obj_hero.pos - gamestate.camera_focus;
 	gamestate.camera_focus += temp / 2;
 
+	//bottom
 	if (gamestate.camera_focus.y > 390)
 	{
 		gamestate.camera_focus.y = 390;
+	}
+
+	//left
+	if (gamestate.camera_focus.x < -100)
+	{
+		gamestate.camera_focus.x = -100; 
+	}
+
+	//right
+	if (gamestate.camera_focus.x > 3500)
+	{
+		gamestate.camera_focus.x = 3500;
 	}
 
 	Play::SetCameraPosition((gamestate.camera_focus - Vector2f(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2)));
@@ -518,26 +528,13 @@ void coins()
 		Play::DrawObjectRotated(Play::GetGameObject(c));
 		
 		GameObject& obj_coin = Play::GetGameObject(c);
-		Play::DrawCircle({ obj_coin.pos }, 10, Play::cOrange);
+		//Play::DrawCircle({ obj_coin.pos }, 10, Play::cOrange);
 		Play::SetSprite(obj_coin, "coin_gold_8", 0.05f);   
 	}
 }
 
 void createcoins(int posx, int posy) 
 {
-	//const int coinspace{ 50 };
-
-	//for (int c = 1; c < objectstate.maxcoins; c++)
-	//{
-	//	Play::CreateGameObject(TYPE_COIN, { coinspace * c, posy }, 10, "coin_gold_8");  
-
-	//	Play::CentreSpriteOrigin("coin_gold");
-	//	//GameObject& obj_coin = Play::GetGameObject(c); 
-
-	//}
-
-	//const int coinspace{ 50 };
-
 	for (int c = 1; c < objectstate.maxcoins; c++)
 	{
 		Play::CreateGameObject(TYPE_COIN, { posx, posy }, 10, "coin_gold_8");
@@ -574,10 +571,10 @@ void platforms()
 		Play::DrawObject(Play::GetGameObject(i));
 	}
 	//aabb
-	for (int i : Play::CollectGameObjectIDsByType(TYPE_PLATFORM))
-	{
-		Play::DrawRect(Play::GetGameObject(i).pos - PLATFORM_AABB, Play::GetGameObject(i).pos + PLATFORM_AABB, Play::cGreen);
-	}
+	//for (int i : Play::CollectGameObjectIDsByType(TYPE_PLATFORM))
+	//{
+	//	Play::DrawRect(Play::GetGameObject(i).pos - PLATFORM_AABB, Play::GetGameObject(i).pos + PLATFORM_AABB, Play::cGreen);
+	//}
 }
 
 void createplatforms(int posx, int posy)
@@ -601,10 +598,10 @@ void blocks()
 		Play::DrawObject(Play::GetGameObject(b)); 
 	}
 	//aabb
-	for (int b : Play::CollectGameObjectIDsByType(TYPE_BLOCK)) 
-	{
-		Play::DrawRect(Play::GetGameObject(b).pos - BLOCK_AABB, Play::GetGameObject(b).pos + BLOCK_AABB, Play::cRed);
-	}
+	//for (int b : Play::CollectGameObjectIDsByType(TYPE_BLOCK)) 
+	//{
+	//	Play::DrawRect(Play::GetGameObject(b).pos - BLOCK_AABB, Play::GetGameObject(b).pos + BLOCK_AABB, Play::cRed);
+	//}
 
 }
 
@@ -659,14 +656,18 @@ void stats()
 	{
 		Play::DrawFontText("64px", "Planding: " + std::to_string(gamestate.platcollision), Point2D(50, 500), Play::LEFT);
 	}
+
 	Play::SetDrawingSpace(Play::WORLD);
+
+	//Play::SetDrawingSpace(Play::SCREEN);
+	//Play::SetDrawingSpace(Play::WORLD);
+
 }
 
 void map()
 {
 	//creating the ground
-	Play::CreateGameObject(TYPE_GROUND, { DISPLAY_WIDTH / 2, DISPLAY_HEIGHT }, 20, "Ground2");
-
+	Play::CreateGameObject(TYPE_GROUND, { 1890, DISPLAY_HEIGHT }, 20, "Ground2");
 
 	//creating platforms
 	const int spacing{ 500 };
