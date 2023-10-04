@@ -94,10 +94,12 @@ void UpdateOwl();
 
 void UpdateControls();
 void Draw();
+
 void groundcollision();
 void UpdateCamera();
 void Collision();
 void BlockCollision(); 
+void owl_groundcollision(); 
 
 void Jump();
 void fall();
@@ -126,6 +128,8 @@ bool MainGameUpdate(float elapsedTime)
 	//UpdateControls(); 
 
 	Draw();
+
+	owl_groundcollision(); 
 
 	Collision();
 
@@ -215,6 +219,7 @@ void UpdateHero()
 	case STATE_FALL: 
 
 		fall();
+ 
 
 		if (gamestate.floorcollision || gamestate.platcollision)
 		{
@@ -235,6 +240,13 @@ void UpdateHero()
 	case STATE_JUMP:
 
 		Jump();
+
+		Collision(); 
+
+		groundcollision(); 
+
+		BlockCollision(); 
+
 		if (gamestate.floorcollision || gamestate.platcollision)
 		{
 			gamestate.herostate = STATE_WALK;
@@ -261,13 +273,13 @@ void UpdateOwl()
 {
 	GameObject& obj_owl = Play::GetGameObjectByType(TYPE_OWL);
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
-	obj_owl.scale = 1.8f; 
+	obj_owl.scale = 2.5f; 
 
 	switch (gamestate.herostate)
 	{
 	case STATE_IDLE: 
-		Play::SetSprite(obj_owl, "Owlet_Monster_Idle_4", 0.05f);
-		obj_owl.pos = { -650, DISPLAY_HEIGHT - 80 };
+		Play::SetSprite(obj_owl, "Owlet_Monster", 0.05f);
+		obj_owl.pos = { -650, DISPLAY_HEIGHT - 70 };
 		obj_owl.velocity = { 0, 0 };
 		if (Play::KeyDown(VK_RETURN))
 		{
@@ -541,6 +553,25 @@ void groundcollision()
 	}
 
 	Play::UpdateGameObject(obj_hero);
+}
+
+void owl_groundcollision()
+{
+	GameObject& obj_owl = Play::GetGameObjectByType(TYPE_OWL);  
+	GameObject& obj_ground = Play::GetGameObjectByType(TYPE_GROUND);
+	gamestate.floorcollision = false;
+
+	if (obj_owl.pos.y + HERO_AABB.y > obj_ground.pos.y - GROUND_AABB.y
+		&& obj_owl.pos.y - HERO_AABB.y < obj_ground.pos.y + GROUND_AABB.y)
+	{
+		gamestate.floorcollision = true;
+		gamestate.floorcollision += 1;
+
+		obj_owl.velocity = { 0, 0 };
+		obj_owl.pos.y = (obj_ground.pos.y - PLATFORM_AABB.y - 30);
+	}
+
+	Play::UpdateGameObject(obj_owl); 
 }
 
 void UpdateCamera()
