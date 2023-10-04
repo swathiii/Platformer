@@ -23,11 +23,15 @@ enum HeroState
 	STATE_WALK,
 	STATE_CLIMB,
 	STATE_DEAD,
+
+	STATE_PLAY,
 };
 
 enum GameObjectType
 {
 	TYPE_HERO,
+	TYPE_OWL,
+
 	TYPE_PLATFORM,
 	TYPE_BLOCK,   
 	TYPE_GROUND,
@@ -71,6 +75,7 @@ struct ObjectState
 ObjectState objectstate;
 
 //declarations
+
 void map(); 
 void blocks(); 
 void createblocks(int posx, int posy); 
@@ -85,6 +90,8 @@ void createcoins(int posx, int posy, int count);
 void stats();
 
 void UpdateHero();
+void UpdateOwl();  
+
 void UpdateControls();
 void Draw();
 void groundcollision();
@@ -103,6 +110,7 @@ void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 	Play::LoadBackground("Data\\Backgrounds\\background4.png");
 
 	Play::CreateGameObject(TYPE_HERO, { DISPLAY_WIDTH / 2, 100 }, 10, "Pink_Monster");
+	Play::CreateGameObject(TYPE_OWL, { -250, DISPLAY_HEIGHT - 50 }, 10, "Owlet_Monster_Idle_4");
 
 	map();    
 } 
@@ -112,6 +120,8 @@ bool MainGameUpdate(float elapsedTime)
 	UpdateCamera();
 
 	UpdateHero();
+
+	UpdateOwl(); 
 
 	//UpdateControls(); 
 
@@ -163,6 +173,10 @@ void Draw()
 	//GameObject& obj_hero = (Play::GetGameObjectByType(TYPE_HERO));
 	//Play::DrawRect(obj_hero.pos - HERO_AABB, obj_hero.pos + HERO_AABB, Play::cGreen);
 
+	//draw owl
+	Play::DrawObjectRotated(Play::GetGameObjectByType(TYPE_OWL));
+	Play::CentreMatchingSpriteOrigins("Owlet_Monster"); 
+
 	thorns(); 
 
 	blocks(); 
@@ -180,7 +194,7 @@ void UpdateHero()
 {
 	GameObject& obj_ground = Play::GetGameObjectByType(TYPE_GROUND);
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
-	obj_hero.scale = 1.5f;
+	obj_hero.scale = 1.8f;
 	float Ymin_surface = obj_ground.pos.y - (GROUND_AABB.y / 2);
 
 	switch (gamestate.herostate)
@@ -189,7 +203,7 @@ void UpdateHero()
 		Play::DrawFontText("64px", "PRESS ENTER TO START", { DISPLAY_WIDTH / 2, DISPLAY_HEIGHT - 300 }, Play::CENTRE);
 		Play::PresentDrawingBuffer();
 		Play::SetSprite(obj_hero, "Pink_Monster", 0.05f);
-		obj_hero.pos = { DISPLAY_WIDTH / 2, DISPLAY_HEIGHT - 100 };
+		obj_hero.pos = { -600, DISPLAY_HEIGHT - 100 };
 		obj_hero.velocity = { 0, 0 };
 
 		if (Play::KeyDown(VK_RETURN))
@@ -240,6 +254,32 @@ void UpdateHero()
 		//	//}
 		//	break;  
 	}
+
+}
+
+void UpdateOwl()
+{
+	GameObject& obj_owl = Play::GetGameObjectByType(TYPE_OWL);
+	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
+	obj_owl.scale = 1.8f; 
+
+	switch (gamestate.herostate)
+	{
+	case STATE_IDLE: 
+		Play::SetSprite(obj_owl, "Owlet_Monster_Idle_4", 0.05f);
+		obj_owl.pos = { -650, DISPLAY_HEIGHT - 80 };
+		obj_owl.velocity = { 0, 0 };
+		if (Play::KeyDown(VK_RETURN))
+		{
+			gamestate.herostate = STATE_PLAY; 
+		}
+		break;
+
+	case STATE_PLAY:
+		Play::SetSprite(obj_hero, "Owlet_Monster_Idle_4", 0.10f); 
+		break;
+	}
+	
 
 }
 
@@ -738,7 +778,6 @@ void map()
 		Play::CreateGameObject(TYPE_PLATFORM, { spacing * i, 0 }, 20, "Platform");
 	}
 
-
 	////creating coins
 	for (int c = 0; c < 15; c++)
 	{
@@ -749,16 +788,11 @@ void map()
 	createcoins(1920, 565, 5);
 
 	createthorns(DISPLAY_WIDTH/2, DISPLAY_HEIGHT - 50, 1);   
-
-
 	//creating blocks
 	Play::CreateGameObject(TYPE_BLOCK, { -100, 800 }, 20, "Block"); 
 
-
-
-
-
-
+	//--------------------------------------- world1
+	/*
 	///////////////////    //////////////////     /////////////////////     //////////////////////////////							/////////////////////////				////////////////////////////			//////////////////////				////////////
 
 																											createblocks(750, 100);
@@ -779,4 +813,34 @@ void map()
 		createblocks(-50, 690); 		createthorns(150, 690, 2);  																																																 createblocks(2000, 690);
 //creating the ground/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Play::CreateGameObject(TYPE_GROUND, { 1890, DISPLAY_HEIGHT }, 20, "Ground2"); 
+
+*/ 
+
+
+
+/// WORLD 2
+
+									     ///////////////                             //////////////////			////////////////////			///////////////////			///////////////////
+															createblocks(300, 50);
+					createblocks(100, 100);
+										createblocks(250, 180); 
+
+					createblocks(100, 280);																	createcoins(850, 250, 5);
+																													createplatforms(950, 300);								createblocks(1200, 300);		
+																																	  createthorns(1050, 350, 1);										createcoins(1350, 350, 3);
+										createblocks(250, 380);			createblocks(650, 380);				createcoins(850, 380, 4); createthorns(1050, 380, 1);				createthorns(1300, 380, 1);					createthorns(1500, 380, 1);
+																																	  createthorns(1050, 400, 1);									createplatforms(1400, 400);
+				createblocks(100, 480);																			createplatforms(950, 450);
+							
+					
+								createcoins(250, 500, 5);				createcoins(650, 500, 1);
+								createplatforms(350, 550);				createblocks(650, 550); 
+
+
+		createblocks(100, 650); 
+
+//creating the ground/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Play::CreateGameObject(TYPE_GROUND, { 1890, DISPLAY_HEIGHT }, 20, "Ground2");
+
+
 }
