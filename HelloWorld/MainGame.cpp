@@ -31,6 +31,7 @@ enum GameObjectType
 {
 	TYPE_HERO,
 	TYPE_OWL,
+	TYPE_THIEF,
 
 	TYPE_PLATFORM,
 	TYPE_BLOCK,   
@@ -91,6 +92,7 @@ void stats();
 
 void UpdateHero();
 void UpdateOwl();  
+void UpdateThief(); 
 
 void UpdateControls();
 void Draw();
@@ -99,7 +101,7 @@ void groundcollision();
 void UpdateCamera();
 void Collision();
 void BlockCollision(); 
-void owl_groundcollision(); 
+void obj_GroundCollision(GameObjectType TYPE);   
 
 void Jump();
 void fall();
@@ -113,6 +115,7 @@ void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 
 	Play::CreateGameObject(TYPE_HERO, { DISPLAY_WIDTH / 2, 100 }, 10, "Pink_Monster");
 	Play::CreateGameObject(TYPE_OWL, { -250, DISPLAY_HEIGHT - 50 }, 10, "Owlet_Monster_Idle_4");
+	Play::CreateGameObject(TYPE_THIEF, { -150, DISPLAY_HEIGHT - 50 }, 10, "Dude_Monster_Idle_4"); 
 
 	map();    
 } 
@@ -125,17 +128,21 @@ bool MainGameUpdate(float elapsedTime)
 
 	UpdateOwl(); 
 
-	//UpdateControls(); 
+	UpdateThief();  
 
 	Draw();
 
-	owl_groundcollision(); 
+	obj_GroundCollision(TYPE_THIEF); 
+
+	obj_GroundCollision(TYPE_OWL);  
+
 
 	Collision();
 
 	groundcollision();
 
 	BlockCollision();
+
 
 	CollectCoins(); 
 
@@ -181,6 +188,10 @@ void Draw()
 	Play::DrawObjectRotated(Play::GetGameObjectByType(TYPE_OWL));
 	Play::CentreMatchingSpriteOrigins("Owlet_Monster"); 
 
+	//draw thief
+	Play::DrawObjectRotated(Play::GetGameObjectByType(TYPE_THIEF));
+	Play::CentreMatchingSpriteOrigins("Dude_Monster"); 
+
 	thorns(); 
 
 	blocks(); 
@@ -194,12 +205,12 @@ void Draw()
 	Play::PresentDrawingBuffer();
 }
 
+
 void UpdateHero()
 {
 	GameObject& obj_ground = Play::GetGameObjectByType(TYPE_GROUND);
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
 	obj_hero.scale = 1.8f;
-	float Ymin_surface = obj_ground.pos.y - (GROUND_AABB.y / 2);
 
 	switch (gamestate.herostate)
 	{
@@ -294,6 +305,30 @@ void UpdateOwl()
 	
 
 }
+
+void UpdateThief()
+{
+	GameObject& obj_thief = Play::GetGameObjectByType(TYPE_THIEF); 
+	obj_thief.scale = 2.5f;
+
+	switch (gamestate.herostate)
+	{
+	case STATE_IDLE:
+		Play::SetSprite(obj_thief, "Dude_Monster_Idle_4", 0.05f);
+		obj_thief.pos = { -550, DISPLAY_HEIGHT - 70 };
+		obj_thief.velocity = { 0, 0 };
+		if (Play::KeyDown(VK_RETURN))
+		{
+			gamestate.herostate = STATE_PLAY;
+		}
+		break;
+
+	case STATE_PLAY:
+		Play::SetSprite(obj_thief, "Dude_Monster_Idle_4", 0.10f);
+		break;
+	}
+}
+
 
 void UpdateControls()
 {
@@ -555,9 +590,9 @@ void groundcollision()
 	Play::UpdateGameObject(obj_hero);
 }
 
-void owl_groundcollision()
+void obj_GroundCollision(GameObjectType TYPE)  
 {
-	GameObject& obj_owl = Play::GetGameObjectByType(TYPE_OWL);  
+	GameObject& obj_owl = Play::GetGameObjectByType(TYPE);   
 	GameObject& obj_ground = Play::GetGameObjectByType(TYPE_GROUND);
 	gamestate.floorcollision = false;
 
