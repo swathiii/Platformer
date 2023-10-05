@@ -53,6 +53,7 @@ struct GameState
 	int SpriteHit = 0; 
 
 	const Vector2D gravity = { 0, 2.5f };
+	const Vector2D fall = { 0, 0.5f };  
 	const Vector2D jumpright = { 0.3f, 0 };
 	const Vector2D jumpleft = { -0.3f, 0 };
 	const Vector2D thrust = { 0, -3 };
@@ -449,7 +450,7 @@ void Jump()
 {
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO); 
 
-	if (Play::KeyDown(VK_SPACE))
+	if (Play::KeyDown(VK_SPACE) && gamestate.Jtime < 0.4) 
 	{
 		if (gamestate.SpriteStanding)
 		{
@@ -472,7 +473,7 @@ void Jump()
 		
 		if (Play::KeyDown(VK_SPACE) && Play::KeyDown(VK_RIGHT) ) 
 		{
-			obj_hero.velocity += gamestate.thrust;
+			obj_hero.velocity += gamestate.thrust * 0.9 ;
 			obj_hero.velocity += gamestate.jumpright;
 			obj_hero.velocity += gamestate.gravity;
 			obj_hero.pos += obj_hero.velocity;
@@ -480,19 +481,13 @@ void Jump()
 		
 		if (Play::KeyDown(VK_SPACE) && Play::KeyDown(VK_LEFT)) 
 		{
-			obj_hero.velocity += gamestate.thrust;
+			obj_hero.velocity += gamestate.thrust * 0.9 ;
 			obj_hero.velocity += gamestate.jumpleft;
 			obj_hero.velocity += gamestate.gravity;
 			obj_hero.pos += obj_hero.velocity;
 		}
 	}
-
-	if (Play::KeyDown(VK_SPACE) && gamestate.Jtime > 0.3)
-	{
-		obj_hero.velocity += gamestate.gravity; 
-	}
 }
-
 
 void Collision()
 {
@@ -831,7 +826,7 @@ void stats()
 	Play::DrawFontText("64px", "Coins: " + std::to_string(objectstate.CoinsCollected), Point2D(50, 70), Play::LEFT);
 	Play::DrawFontText("64px", "Hits: " + std::to_string(gamestate.SpriteHit), Point2D(50, 170), Play::LEFT);
 	Play::DrawFontText("64px", "GameTime: " + std::to_string(gamestate.Gtime), Point2D(50, 270), Play::LEFT);
-	Play::DrawFontText("64px", "JumpTime: " + std::to_string(gamestate.Jtime), Point2D(50, 370), Play::LEFT);
+	Play::DrawFontText("64px", "JumpTime: " + std::to_string(gamestate.Jtime), Point2D(50, 310), Play::LEFT);
 
 	//Play::DrawFontText("64px", "Collision: " + std::to_string(gamestate.Gcollision), Point2D(50, 600), Play::LEFT);
 
@@ -875,7 +870,7 @@ void map()
 	const int spacing{ 500 };
 	for (int i = 0; i < 10; i++)
 	{
-		Play::CreateGameObject(TYPE_PLATFORM, { spacing * i, 0 }, 20, "Platform");
+		Play::CreateGameObject(TYPE_PLATFORM, { spacing * i, 0 }, 20, "Platform"); 
 	}
 
 	////creating coins
@@ -893,47 +888,22 @@ void map()
 	//creating blocks
 	Play::CreateGameObject(TYPE_BLOCK, { -100, 800 }, 20, "Block"); 
 
-	//--------------------------------------- world1
-	/*
-	///////////////////    //////////////////     /////////////////////     //////////////////////////////							/////////////////////////				////////////////////////////			//////////////////////				////////////
-
-																											createblocks(750, 100);
-																						
-																						 createblocks(650, 200);
-
-							createcoins(250, 300, 1);		createcoins(350, 250, 5);
-							createblocks(250, 350);			createplatforms(450, 300); 
-
-						createcoins(150, 400, 1);			
-						createblocks(150, 450);				    
-
-				createcoins(50, 500, 1);			
-				createblocks(50, 550);				
-
-		createcoins(-50, 600, 1);
-		createblocks(-50, 650);			createthorns(160, 650, 1); 
-		createblocks(-50, 690); 		createthorns(150, 690, 2);  																																																 createblocks(2000, 690);
-//creating the ground/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Play::CreateGameObject(TYPE_GROUND, { 1890, DISPLAY_HEIGHT }, 20, "Ground2"); 
-
-*/ 
-
-/// WORLD 2 // Code aligned for visualisation - don't judge :P
+/// WORLD 1 // Code aligned for visualisation - don't judge :P
 
 									     ///////////////                             //////////////////			////////////////////			///////////////////			///////////////////				////////////////////////			/////////////////////			////////////////////////////			//////////////////////////			///////////////////////////		 /////////////////////////////
-															createblocks(300, 50);
+															createblocks(120, 80);
 				/*	createblocks(100, 100); */
 										createblocks(250, 180); 
 
 					createblocks(100, 280);																	createcoins(850, 250, 5);																																																					createcoins(2000, 250 , 4);
 																													createplatforms(950, 300);								createblocks(1200, 300);																					createblocks(1800, 350);								createplatforms(2050, 300);
 																																	  createthorns(1050, 350, 1);										createcoins(1350, 350, 3);																						createthorns(1955, 350, 1);
-										createblocks(250, 380);			createblocks(650, 300);				createcoins(850, 380, 4); createthorns(1050, 380, 1);				createthorns(1300, 380, 1);					createthorns(1500, 380, 1);			createblocks(1650, 380);								createthorns(1955, 380, 1);		createcoins(2000, 380, 4);			createblocks(2300, 380);
+										createblocks(250, 380);			/*createblocks(690, 380);*/				createcoins(850, 380, 4); createthorns(1050, 380, 1);				createthorns(1300, 380, 1);					createthorns(1500, 380, 1);			createblocks(1650, 380);								createthorns(1955, 380, 1);		createcoins(2000, 380, 4);			createblocks(2300, 380);
 																																	  createthorns(1050, 400, 1);									createplatforms(1400, 400);																							createthorns(1955, 400, 1);																	createblocks(2400, 480);
 				createblocks(100, 480);																			createplatforms(950, 450);																																																		createplatforms(2050, 450);																	createblocks(2500, 580);
 																																																																																																																	createblocks(2600, 670);																																																																																																										
 																																		createthorns(1050, 500, 1);
-								createcoins(250, 500, 5);				createcoins(650, 420, 1);										createthorns(1050, 540, 1);
+								createcoins(250, 500, 5);				createcoins(650, 400, 1);										createthorns(1050, 540, 1);
 								createplatforms(350, 550);				createblocks(650, 470);											createthorns(1050, 570, 1);
 																																		createthorns(1050, 600, 1);
 																																		createthorns(1050, 640, 1);
