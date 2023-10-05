@@ -53,9 +53,12 @@ struct GameState
 	int SpriteHit = 0; 
 
 	const Vector2D gravity = { 0, 2.5f };
-	const Vector2D jumpright = { 0.5f, 0 };
-	const Vector2D jumpleft = { -0.5f, 0 };
+	const Vector2D jumpright = { 0.3f, 0 };
+	const Vector2D jumpleft = { -0.3f, 0 };
 	const Vector2D thrust = { 0, -3 };
+
+	double Gtime = 0.0; 
+	double Jtime = 0.0; 
 
 	Vector2D camera_focus{ 0, 0 };
 	int camera_cord_x = 0;
@@ -103,7 +106,7 @@ void Collision();
 void BlockCollision(); 
 void obj_GroundCollision(GameObjectType TYPE);   
 
-void Jump();
+void Jump(); 
 void fall();
 void Walk();
  
@@ -122,6 +125,17 @@ void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 
 bool MainGameUpdate(float elapsedTime)
 {
+	gamestate.Gtime += elapsedTime;  
+
+	if (Play::KeyDown(VK_SPACE))
+	{
+		gamestate.Jtime += elapsedTime; 
+	}
+	else
+	{
+		gamestate.Jtime = 0.0; 
+	}
+
 	UpdateCamera();
 
 	UpdateHero();
@@ -250,7 +264,7 @@ void UpdateHero()
 
 	case STATE_JUMP:
 
-		Jump();
+		Jump();  
 
 		Collision(); 
 
@@ -345,7 +359,7 @@ void UpdateControls()
 
 	if (Play::KeyPressed(VK_SPACE))
 	{
-		Jump();
+		Jump(); 
 	}
 	else if (Play::KeyDown(VK_RIGHT))
 	{
@@ -433,7 +447,7 @@ void Walk()
 
 void Jump()
 {
-	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
+	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO); 
 
 	if (Play::KeyDown(VK_SPACE))
 	{
@@ -472,7 +486,13 @@ void Jump()
 			obj_hero.pos += obj_hero.velocity;
 		}
 	}
+
+	if (Play::KeyDown(VK_SPACE) && gamestate.Jtime > 0.3)
+	{
+		obj_hero.velocity += gamestate.gravity; 
+	}
 }
+
 
 void Collision()
 {
@@ -609,6 +629,8 @@ void obj_GroundCollision(GameObjectType TYPE)
 	Play::UpdateGameObject(obj_owl); 
 }
 
+
+
 void UpdateCamera()
 {
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
@@ -636,6 +658,8 @@ void UpdateCamera()
 
 	Play::SetCameraPosition((gamestate.camera_focus - Vector2f(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2)));
 }
+
+
 
 void coins()
 {
@@ -677,6 +701,8 @@ void CollectCoins()
 	}
 }
 
+
+
 void platforms()
 {
 	Play::CentreSpriteOrigin("Platform");
@@ -703,6 +729,8 @@ void createplatforms(int posx, int posy)
 
 	//}
 }
+
+
 
 void blocks()
 {
@@ -731,6 +759,8 @@ void createblocks(int posx, int posy)
 
 	//}
 }
+
+
 
 void thorns()
 {
@@ -784,6 +814,8 @@ void thorncollision()
 	}
 }
 
+
+
 void stats()
 {
 
@@ -798,6 +830,9 @@ void stats()
 
 	Play::DrawFontText("64px", "Coins: " + std::to_string(objectstate.CoinsCollected), Point2D(50, 70), Play::LEFT);
 	Play::DrawFontText("64px", "Hits: " + std::to_string(gamestate.SpriteHit), Point2D(50, 170), Play::LEFT);
+	Play::DrawFontText("64px", "GameTime: " + std::to_string(gamestate.Gtime), Point2D(50, 270), Play::LEFT);
+	Play::DrawFontText("64px", "JumpTime: " + std::to_string(gamestate.Jtime), Point2D(50, 370), Play::LEFT);
+
 	//Play::DrawFontText("64px", "Collision: " + std::to_string(gamestate.Gcollision), Point2D(50, 600), Play::LEFT);
 
 	//Play::SetDrawingSpace(Play::SCREEN);
