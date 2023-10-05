@@ -594,9 +594,9 @@ void UpdateCamera()
 	}
 
 	//right
-	if (gamestate.camera_focus.x > 2000)
+	if (gamestate.camera_focus.x > 2500)
 	{
-		gamestate.camera_focus.x = 2000;
+		gamestate.camera_focus.x = 2500;
 	}
 
 	Play::SetCameraPosition((gamestate.camera_focus - Vector2f(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2)));
@@ -660,14 +660,13 @@ void platforms()
 
 void createplatforms(int posx, int posy)
 {
-	std::vector<int> vPlatform = Play::CollectGameObjectIDsByType(TYPE_PLATFORM);
-	for (int id_platform : vPlatform)
-	{
-
+	//std::vector<int> vPlatform = Play::CollectGameObjectIDsByType(TYPE_PLATFORM);
+	//for (int id_platform : vPlatform)
+	//{
 		Play::CreateGameObject(TYPE_PLATFORM, { posx, posy }, 10, "Platform");
-		GameObject& obj_platform = Play::GetGameObject(id_platform); 
+	//	GameObject& obj_platform = Play::GetGameObject(id_platform); 
 
-	}
+	//}
 }
 
 void blocks()
@@ -688,18 +687,20 @@ void blocks()
 
 void createblocks(int posx, int posy)
 {
-	std::vector<int> vBlocks = Play::CollectGameObjectIDsByType(TYPE_BLOCK);
-	for (int id_blocks : vBlocks)
-	{
+	//std::vector<int> vBlocks = Play::CollectGameObjectIDsByType(TYPE_BLOCK);
+	//for (int id_blocks : vBlocks)
+	//{
 
 		Play::CreateGameObject(TYPE_BLOCK, { posx, posy }, 10, "Block"); 
-		GameObject& obj_blocks = Play::GetGameObject(id_blocks);  
+		//GameObject& obj_blocks = Play::GetGameObject(id_blocks);  
 
-	}
+	//}
 }
 
 void thorns()
 {
+	Play::CentreSpriteOrigin("Thorn");
+
 	for (int t : Play::CollectGameObjectIDsByType(TYPE_THORN))
 	{
 		Play::DrawObject(Play::GetGameObject(t)); 
@@ -712,15 +713,13 @@ void thorns()
 
 void createthorns(int posx, int posy, int count) 
 {
-	for (int t = 1; t < count + 1; t++)
-	{
+	//for (int t = 1; t < count + 1; t++)
+	//{
 		Play::CreateGameObject(TYPE_THORN, { posx, posy }, 35, "Thorn");
 
 		posx += 50;
 
-		Play::CentreSpriteOrigin("Thorn");
-
-	}
+	//}
 }
 
 void thorncollision()
@@ -815,8 +814,10 @@ void map()
 		createcoins(spacing * c, -50, 1); 
 	}
 
-	createcoins(1280, 665, 5);
-	createcoins(1920, 665, 5);
+	createcoins(680, 675, 5);
+	createcoins(1280, 675, 5);
+	createcoins(1920, 675, 5);
+	createcoins(2760, 675, 5);
 
 	createthorns(DISPLAY_WIDTH/2, DISPLAY_HEIGHT - 50, 1);   
 	//creating blocks
@@ -847,30 +848,28 @@ Play::CreateGameObject(TYPE_GROUND, { 1890, DISPLAY_HEIGHT }, 20, "Ground2");
 
 */ 
 
-
-
 /// WORLD 2 // Code aligned for visualisation - don't judge :P
 
-									     ///////////////                             //////////////////			////////////////////			///////////////////			///////////////////
+									     ///////////////                             //////////////////			////////////////////			///////////////////			///////////////////				////////////////////////			/////////////////////			////////////////////////////			//////////////////////////			///////////////////////////		 /////////////////////////////
 															createblocks(300, 50);
 				/*	createblocks(100, 100); */
 										createblocks(250, 180); 
 
-					createblocks(100, 280);																	createcoins(850, 250, 5);
+					createblocks(100, 280);																	createcoins(850, 250, 5);																																																					createcoins(2000, 250 , 4);
 																													createplatforms(950, 300);								createblocks(1200, 300);																					createblocks(1800, 350);								createplatforms(2050, 300);
 																																	  createthorns(1050, 350, 1);										createcoins(1350, 350, 3);																						createthorns(1955, 350, 1);
-										createblocks(250, 380);			createblocks(650, 380);				createcoins(850, 380, 4); createthorns(1050, 380, 1);				createthorns(1300, 380, 1);					createthorns(1500, 380, 1);			createblocks(1650, 380);								createthorns(1955, 380, 1);		createcoins(2000, 380, 4);			createblocks(2300, 380);
-																																	  createthorns(1050, 400, 1);									createplatforms(1400, 400);																							createthorns(1955, 400, 1);
-				createblocks(100, 480);																			createplatforms(950, 450);																																																		createplatforms(2050, 450);
-							
-					
-								createcoins(250, 500, 5);				createcoins(650, 500, 1);
-								createplatforms(350, 550);				createblocks(650, 550); 
-
-
-		createblocks(100, 650); 
-
-//creating the ground/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+										createblocks(250, 380);			createblocks(650, 300);				createcoins(850, 380, 4); createthorns(1050, 380, 1);				createthorns(1300, 380, 1);					createthorns(1500, 380, 1);			createblocks(1650, 380);								createthorns(1955, 380, 1);		createcoins(2000, 380, 4);			createblocks(2300, 380);
+																																	  createthorns(1050, 400, 1);									createplatforms(1400, 400);																							createthorns(1955, 400, 1);																	createblocks(2400, 480);
+				createblocks(100, 480);																			createplatforms(950, 450);																																																		createplatforms(2050, 450);																	createblocks(2500, 580);
+																																																																																																																	createblocks(2600, 670);																																																																																																										
+																																		createthorns(1050, 500, 1);
+								createcoins(250, 500, 5);				createcoins(650, 420, 1);										createthorns(1050, 540, 1);
+								createplatforms(350, 550);				createblocks(650, 470);											createthorns(1050, 570, 1);
+																																		createthorns(1050, 600, 1);
+																																		createthorns(1050, 640, 1);
+		createblocks(100, 650);																											createthorns(1050, 670, 1);
+																																		createthorns(1050, 700, 1);
+//creating the ground//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Play::CreateGameObject(TYPE_GROUND, { 1890, DISPLAY_HEIGHT }, 20, "Ground2");
 
 
