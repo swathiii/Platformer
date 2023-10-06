@@ -33,6 +33,8 @@ enum GameObjectType
 	TYPE_OWL,
 	TYPE_THIEF,
 
+	TYPE_DIALOGUE,
+
 	TYPE_PLATFORM,
 	TYPE_BLOCK,   
 	TYPE_GROUND,
@@ -98,7 +100,10 @@ void UpdateHero();
 void UpdateOwl();  
 void UpdateThief(); 
 
-void UpdateControls();
+void UpdateDialogue();   
+void Dialogue(); 
+
+void UpdateControls(); 
 void Draw();
 
 void groundcollision();
@@ -114,12 +119,14 @@ void Walk();
 
 void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 {
+
 	Play::CreateManager(DISPLAY_WIDTH, DISPLAY_HEIGHT, DISPLAY_SCALE);
 	Play::LoadBackground("Data\\Backgrounds\\background4.png");
 
 	Play::CreateGameObject(TYPE_HERO, { DISPLAY_WIDTH / 2, 100 }, 10, "Pink_Monster");
 	Play::CreateGameObject(TYPE_OWL, { -250, DISPLAY_HEIGHT - 50 }, 10, "Owlet_Monster_Idle_4");
 	Play::CreateGameObject(TYPE_THIEF, { -150, DISPLAY_HEIGHT - 50 }, 10, "Dude_Monster_Idle_4"); 
+
 
 	map();    
 } 
@@ -137,6 +144,8 @@ bool MainGameUpdate(float elapsedTime)
 		gamestate.Jtime = 0.0; 
 	}
 
+	Dialogue(); 
+
 	UpdateCamera();
 
 	UpdateHero();
@@ -144,6 +153,8 @@ bool MainGameUpdate(float elapsedTime)
 	UpdateOwl(); 
 
 	UpdateThief();  
+
+	UpdateDialogue(); 
 
 	Draw();
 
@@ -173,6 +184,35 @@ int MainGameExit(void)
 	return PLAY_OK; //indicated program ginished without any errors
 }
 
+void UpdateDialogue()
+{
+	for (int d : Play::CollectGameObjectIDsByType(TYPE_DIALOGUE))
+	{
+		Play::DrawObjectRotated(Play::GetGameObject(d));
+		//GameObject& obj_dia = Play::GetGameObject(TYPE_DIALOGUE); 
+	}
+
+
+}
+
+void Dialogue()
+{
+	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
+	GameObject& obj_owl = Play::GetGameObjectByType(TYPE_OWL);
+	//GameObject& obj_dia = Play::GetGameObjectByType(TYPE_DIALOGUE);
+
+	if (Play::IsColliding(obj_hero, obj_owl) && Play::KeyDown('Z'))
+	{
+		int dia_id = Play::CreateGameObject(TYPE_DIALOGUE, { -600, 500 }, 100, "greet_2");
+		 
+	}
+
+	if ( (!Play::IsColliding(obj_hero, obj_owl)) )
+	{ 
+		Play::DestroyGameObjectsByType(TYPE_DIALOGUE); 
+	}
+}
+
 void Draw()
 {
 	Play::ClearDrawingBuffer(Play::cWhite);
@@ -182,6 +222,12 @@ void Draw()
 	for (int i : Play::CollectGameObjectIDsByType(TYPE_PLATFORM))
 	{
 		Play::DrawObject(Play::GetGameObject(i));
+	}
+
+	//draw dialogues
+	for (int d : Play::CollectGameObjectIDsByType(TYPE_DIALOGUE))
+	{
+		Play::DrawObject(Play::GetGameObject(d)); 
 	}
 
 	//draw ground
@@ -225,6 +271,8 @@ void UpdateHero()
 {
 	GameObject& obj_ground = Play::GetGameObjectByType(TYPE_GROUND);
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
+
+
 	obj_hero.scale = 1.8f;
 
 	switch (gamestate.herostate)
@@ -232,6 +280,12 @@ void UpdateHero()
 	case STATE_IDLE:
 		Play::DrawFontText("64px", "PRESS ENTER TO START", { DISPLAY_WIDTH / 2, DISPLAY_HEIGHT - 300 }, Play::CENTRE);
 		Play::PresentDrawingBuffer();
+
+
+		//Play::SetDrawingSpace(Play::SCREEN);
+		Play::DrawSprite("greet", { 100, 100 }, 1);
+		//Play::SetDrawingSpace(Play::WORLD);
+
 		Play::SetSprite(obj_hero, "Pink_Monster", 0.05f);
 		obj_hero.pos = { -600, DISPLAY_HEIGHT - 100 };
 		obj_hero.velocity = { 0, 0 };
@@ -260,7 +314,6 @@ void UpdateHero()
 		{
 				gamestate.herostate = STATE_JUMP;
 		}
-
 		break;
 
 	case STATE_JUMP:
@@ -284,13 +337,6 @@ void UpdateHero()
 		groundcollision();
 		break;
 
-		//case STATE_PLAY:
-		//	UpdateControls(); 
-		//	//if (obj_hero.pos.y > Ymin_surface) 
-		//	//{
-		//	//	gamestate.herostate = STATE_LAND;  
-		//	//}
-		//	break;  
 	}
 
 }
@@ -668,6 +714,8 @@ void coins()
 	}
 }
 
+
+
 void createcoins(int posx, int posy, int count)  
 {
 	for (int c = 1; c < count + 1 ; c++) 
@@ -828,7 +876,7 @@ void stats()
 	Play::DrawFontText("64px", "GameTime: " + std::to_string(gamestate.Gtime), Point2D(50, 270), Play::LEFT);
 	Play::DrawFontText("64px", "JumpTime: " + std::to_string(gamestate.Jtime), Point2D(50, 310), Play::LEFT);
 
-	//Play::DrawFontText("64px", "Collision: " + std::to_string(gamestate.Gcollision), Point2D(50, 600), Play::LEFT);
+	//Play::DrawFontText("64px", "Collision: " + std::to_string(gamestate.Gcolli  sion), Point2D(50, 600), Play::LEFT);
 
 	//Play::SetDrawingSpace(Play::SCREEN);
 	//Play::DrawFontText("64px", "Camera Coord X: " + std::to_string(gamestate.camera_cord_x), Point2D(50, 450), Play::LEFT);
@@ -864,6 +912,8 @@ void stats()
 
 void map()
 {
+
+
 
 	Play::CreateGameObject(TYPE_PLATFORM, { 0, 0 }, 20, "Platform"); 
 	//creating platforms
