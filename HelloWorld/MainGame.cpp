@@ -189,28 +189,43 @@ void UpdateDialogue()
 	for (int d : Play::CollectGameObjectIDsByType(TYPE_DIALOGUE))
 	{
 		Play::DrawObjectRotated(Play::GetGameObject(d));
-		//GameObject& obj_dia = Play::GetGameObject(TYPE_DIALOGUE); 
+
+		//GameObject& obj_dia = Play::GetGameObject(TYPE_DIALOGUE);
+		//obj_dia.scale = 0.5f; 
 	}
-
-
 }
 
 void Dialogue()
 {
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
 	GameObject& obj_owl = Play::GetGameObjectByType(TYPE_OWL);
+	GameObject& obj_thief = Play::GetGameObjectByType(TYPE_THIEF);   
+
+	bool firstcoin = false;
+
 	//GameObject& obj_dia = Play::GetGameObjectByType(TYPE_DIALOGUE);
 
 	if (Play::IsColliding(obj_hero, obj_owl) && Play::KeyDown('Z'))
 	{
-		int dia_id = Play::CreateGameObject(TYPE_DIALOGUE, { -600, 500 }, 100, "greet_2");
-		 
+		Play::CreateGameObject(TYPE_DIALOGUE, { -630, 550 }, 100, "greet_7_1");
+		//GameObject& obj_dia = Play::GetGameObject(dia_id); 
+	}
+	else if (!Play::IsColliding(obj_hero, obj_owl) )
+	{
+		Play::DestroyGameObjectsByType(TYPE_DIALOGUE);
 	}
 
-	if ( (!Play::IsColliding(obj_hero, obj_owl)) )
-	{ 
-		Play::DestroyGameObjectsByType(TYPE_DIALOGUE); 
+	if (objectstate.CoinsCollected == 1 )
+	{
+		firstcoin = true; 
+		Play::CreateGameObject(TYPE_DIALOGUE, { -630, 650 }, 10, "greet_excl_1"); 
 	}
+
+	if (firstcoin && Play::IsColliding(obj_hero, obj_owl))
+	{
+		Play::DestroyGameObjectsByType(TYPE_DIALOGUE);
+	}
+
 }
 
 void Draw()
@@ -222,12 +237,14 @@ void Draw()
 	for (int i : Play::CollectGameObjectIDsByType(TYPE_PLATFORM))
 	{
 		Play::DrawObject(Play::GetGameObject(i));
+
 	}
 
 	//draw dialogues
 	for (int d : Play::CollectGameObjectIDsByType(TYPE_DIALOGUE))
 	{
 		Play::DrawObject(Play::GetGameObject(d)); 
+		Play::CentreMatchingSpriteOrigins("greet"); 
 	}
 
 	//draw ground
@@ -714,8 +731,6 @@ void coins()
 	}
 }
 
-
-
 void createcoins(int posx, int posy, int count)  
 {
 	for (int c = 1; c < count + 1 ; c++) 
@@ -866,15 +881,19 @@ void stats()
 	int mouse_x = mcoord.x; 
 	int mouse_y = mcoord.y; 
 
-	//coords to place objects at
+	
 	Play::SetDrawingSpace(Play::SCREEN);
-	Play::DrawFontText("64px", "X: " + std::to_string(mouse_x), Point2D(50, 450), Play::LEFT);
-	Play::DrawFontText("64px", "Y: " + std::to_string(mouse_y), Point2D(50, 400), Play::LEFT); 
+
+	//------------------   coords to place objects at
+	//Play::DrawFontText("64px", "X: " + std::to_string(mouse_x), Point2D(50, 450), Play::LEFT);
+	//Play::DrawFontText("64px", "Y: " + std::to_string(mouse_y), Point2D(50, 400), Play::LEFT); 
 
 	Play::DrawFontText("64px", "Coins: " + std::to_string(objectstate.CoinsCollected), Point2D(50, 70), Play::LEFT);
-	Play::DrawFontText("64px", "Hits: " + std::to_string(gamestate.SpriteHit), Point2D(50, 170), Play::LEFT);
-	Play::DrawFontText("64px", "GameTime: " + std::to_string(gamestate.Gtime), Point2D(50, 270), Play::LEFT);
-	Play::DrawFontText("64px", "JumpTime: " + std::to_string(gamestate.Jtime), Point2D(50, 310), Play::LEFT);
+	Play::DrawFontText("64px", "Hits: " + std::to_string(gamestate.SpriteHit), Point2D(50, 150), Play::LEFT);
+	
+	//------------------ timer
+	//Play::DrawFontText("64px", "GameTime: " + std::to_string(gamestate.Gtime), Point2D(50, 270), Play::LEFT);
+	//Play::DrawFontText("64px", "JumpTime: " + std::to_string(gamestate.Jtime), Point2D(50, 310), Play::LEFT);
 
 	//Play::DrawFontText("64px", "Collision: " + std::to_string(gamestate.Gcolli  sion), Point2D(50, 600), Play::LEFT);
 
@@ -929,6 +948,7 @@ void map()
 		createcoins(spacing * c, -50, 1); 
 	}
 
+	createcoins(-250, 680, 1); 
 	createcoins(680, 675, 5);
 	createcoins(1280, 675, 5);
 	createcoins(1920, 675, 5);
