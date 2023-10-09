@@ -124,8 +124,8 @@ void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 	Play::LoadBackground("Data\\Backgrounds\\background4.png");
 
 	Play::CreateGameObject(TYPE_HERO, { DISPLAY_WIDTH / 2, 100 }, 10, "Pink_Monster");
-	Play::CreateGameObject(TYPE_OWL, { -250, DISPLAY_HEIGHT - 50 }, 10, "Owlet_Monster_Idle_4");
-	Play::CreateGameObject(TYPE_THIEF, { -150, DISPLAY_HEIGHT - 50 }, 10, "Dude_Monster_Idle_4"); 
+	Play::CreateGameObject(TYPE_OWL, { -250, DISPLAY_HEIGHT - 50 }, 40, "Owlet_Monster_Idle_4");
+	Play::CreateGameObject(TYPE_THIEF, { -150, DISPLAY_HEIGHT - 50 }, 40, "Dude_Monster_Idle_4"); 
 
 
 	map();    
@@ -202,12 +202,15 @@ void Dialogue()
 	GameObject& obj_thief = Play::GetGameObjectByType(TYPE_THIEF);   
 
 	bool firstcoin = false;
+	bool greet2 = false; 
+	//GameObject& obj_dia = Play::GetGameObjectByType(TYPE_DIALOGUE); 
 
-	//GameObject& obj_dia = Play::GetGameObjectByType(TYPE_DIALOGUE);
-
-	if (Play::IsColliding(obj_hero, obj_owl) && Play::KeyDown('Z'))
+	
+	if (objectstate.CoinsCollected == 0 && 
+		Play::IsColliding(obj_hero, obj_owl) && 
+		Play::KeyDown('Z'))
 	{
-		Play::CreateGameObject(TYPE_DIALOGUE, { -630, 550 }, 100, "greet_7_1");
+		Play::CreateGameObject(TYPE_DIALOGUE, { -630, 550 }, 100, "greet_1");
 		//GameObject& obj_dia = Play::GetGameObject(dia_id); 
 	}
 	else if (!Play::IsColliding(obj_hero, obj_owl) )
@@ -221,11 +224,56 @@ void Dialogue()
 		Play::CreateGameObject(TYPE_DIALOGUE, { -630, 650 }, 10, "greet_excl_1"); 
 	}
 
-	if (firstcoin && Play::IsColliding(obj_hero, obj_owl))
+
+	if (objectstate.CoinsCollected >= 1 && 
+		Play::IsColliding(obj_hero, obj_owl) && 
+		Play::KeyDown('Z'))
 	{
+		//Play::DestroyGameObjectsByType(TYPE_DIALOGUE);   
+		Play::CreateGameObject(TYPE_DIALOGUE, { -630, 550 }, 100, "greet_2_1");
+	}
+
+
+	/*
+	switch (objectstate.CoinsCollected)
+	{
+	case 0 :
+
+		if (Play::IsColliding(obj_hero, obj_owl) && Play::KeyDown('Z'))
+		{
+			Play::CreateGameObject(TYPE_DIALOGUE, { -630, 550 }, 100, "greet_1");
+		}
+		else if (!Play::IsColliding(obj_hero, obj_owl))
+		{
+			Play::DestroyGameObjectsByType(TYPE_DIALOGUE); 
+		} 
+		break; 
+
+	case 1:
+
+		Play::CreateGameObject(TYPE_DIALOGUE, { -630, 650 }, 10, "greet_excl_1"); 
+
+		if (Play::IsColliding(obj_hero, obj_owl) && Play::KeyDown('Z'))
+		{
+			greet2 = true; 
+
+			Play::DestroyGameObjectsByType(TYPE_DIALOGUE);  
+			Play::CreateGameObject(TYPE_DIALOGUE, { -630, 550 }, 100, "greet_2_1");  
+
+		}
+		else if ( greet2 && !Play::IsColliding(obj_hero, obj_owl))  
+		{
+			Play::DestroyGameObjectsByType(TYPE_DIALOGUE); 
+		} 
+		break;
+
+	
+	default:
+
 		Play::DestroyGameObjectsByType(TYPE_DIALOGUE);
 	}
 
+	*/
 }
 
 void Draw()
@@ -393,7 +441,7 @@ void UpdateThief()
 	{
 	case STATE_IDLE:
 		Play::SetSprite(obj_thief, "Dude_Monster_Idle_4", 0.05f);
-		obj_thief.pos = { -550, DISPLAY_HEIGHT - 70 };
+		obj_thief.pos = { -450, DISPLAY_HEIGHT - 70 };
 		obj_thief.velocity = { 0, 0 };
 		if (Play::KeyDown(VK_RETURN))
 		{
