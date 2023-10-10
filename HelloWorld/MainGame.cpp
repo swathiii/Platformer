@@ -77,6 +77,7 @@ struct ObjectState
 	int maxcoins = 6;
 	Point2f coinpos{ -100, -100 };
 	int CoinsCollected = 0; 
+	bool Coinsgiven = false; 
 };
 
 ObjectState objectstate;
@@ -144,8 +145,8 @@ bool MainGameUpdate(float elapsedTime)
 		gamestate.Jtime = 0.0; 
 	}
 
-	UpdateDialogue();  
-	Dialogue(); 
+	UpdateDialogue();   
+	//Dialogue(); 
 
 	UpdateCamera();
 
@@ -190,9 +191,13 @@ void UpdateDialogue()
 	{
 		Play::DrawObjectRotated(Play::GetGameObject(d));
 	}
+
+	//Play::DrawObjectRotated(Play::GetGameObjectByType(TYPE_DIALOGUE)); 
+
+	Dialogue(); 
 }
 
-void Dialogue()
+void Dialogue() // solve: multiple dialogues are created 
 {
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
 	GameObject& obj_owl = Play::GetGameObjectByType(TYPE_OWL);
@@ -213,13 +218,22 @@ void Dialogue()
 		greet4 = true; 
 		Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x - 50, 350 }, 100, "greet_3_1");
 	}
-	else if ( (objectstate.CoinsCollected >= 6 && objectstate.CoinsCollected < 10 ) && Play::IsColliding(obj_hero, obj_thief))
+	else if ( (objectstate.CoinsCollected >= 6 && objectstate.CoinsCollected < 10 ) && Play::IsColliding(obj_hero, obj_thief)) //arbitrary values for testing -- coinscollected 
 	{
 		Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x - 50, 350 }, 100, "greet_4_1"); 
 	}
-	else if ((objectstate.CoinsCollected == 11 && Play::IsColliding(obj_hero, obj_thief)))
+	else if ((!objectstate.Coinsgiven &&  objectstate.CoinsCollected == 11 && Play::IsColliding(obj_hero, obj_thief))) //arbitrary values for testing -- coinscollected 
 	{
-		Play::CreateGameObject(TYPE_DIALOGUE, { obj_hero.pos.x - 50, 350 }, 100, "greet_5_1"); 
+		Play::CreateGameObject(TYPE_DIALOGUE, { obj_hero.pos.x - 150, obj_hero.pos.y - 50 }, 100, "greet_5_1"); 
+		objectstate.Coinsgiven = true; 
+	}
+	else if ( objectstate.Coinsgiven && objectstate.CoinsCollected == 11 && Play::IsColliding(obj_hero, obj_thief))	//arbitrary values for testing -- coinscollected 
+	{
+		Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x - 150, obj_thief.pos.y - 350 }, 100, "greet_6_1");
+	}
+	else if (objectstate.CoinsCollected == 11 && Play::IsColliding(obj_hero, obj_owl))							//arbitrary values for testing -- coinscollected 
+	{
+		Play::CreateGameObject(TYPE_DIALOGUE, {-650, 350 }, 100, "greet_7_1");
 	}
 	else if (!Play::IsColliding(obj_hero, obj_owl) )
 	{
@@ -233,6 +247,7 @@ void Dialogue()
 	} 
 
 	if (objectstate.CoinsCollected >= 1 && 
+		objectstate.CoinsCollected < 11 &&
 		Play::IsColliding(obj_hero, obj_owl))
 	{
 		//Play::DestroyGameObjectsByType(TYPE_DIALOGUE);   
@@ -312,11 +327,6 @@ void UpdateHero()
 		Play::DrawFontText("64px", "PRESS ENTER TO START", { DISPLAY_WIDTH / 2, DISPLAY_HEIGHT - 300 }, Play::CENTRE);
 		Play::PresentDrawingBuffer();
 
-
-		//Play::SetDrawingSpace(Play::SCREEN);
-		Play::DrawSprite("greet", { 100, 100 }, 1);
-		//Play::SetDrawingSpace(Play::WORLD);
-
 		Play::SetSprite(obj_hero, "Pink_Monster", 0.05f);
 		obj_hero.pos = { -600, DISPLAY_HEIGHT - 100 };
 		obj_hero.velocity = { 0, 0 };
@@ -394,8 +404,6 @@ void UpdateOwl()
 		Play::SetSprite(obj_hero, "Owlet_Monster_Idle_4", 0.10f); 
 		break;
 	}
-	
-
 }
 
 void UpdateThief( )
@@ -703,7 +711,7 @@ void obj_GroundCollision(GameObjectType TYPE)
 
 
 
-void UpdateCamera()
+void UpdateCamera() //set top, set boundaries
 {
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
 
@@ -833,7 +841,6 @@ void createblocks(int posx, int posy)
 }
 
 
-
 void thorns()
 {
 	Play::CentreSpriteOrigin("Thorn");
@@ -945,9 +952,6 @@ void stats()
 
 void map()
 {
-
-
-
 	Play::CreateGameObject(TYPE_PLATFORM, { 0, 0 }, 20, "Platform"); 
 	//creating platforms
 	const int spacing{ 500 };
@@ -968,7 +972,9 @@ void map()
 	createcoins(1920, 675, 5);
 	createcoins(2760, 675, 5);
 
-	createthorns(DISPLAY_WIDTH/2, DISPLAY_HEIGHT - 50, 1);   
+	// first thorn 
+	createthorns(DISPLAY_WIDTH/2, DISPLAY_HEIGHT - 50, 1);    
+
 	//creating blocks
 	Play::CreateGameObject(TYPE_BLOCK, { -100, 800 }, 20, "Block"); 
 
@@ -995,6 +1001,5 @@ void map()
 																																		createthorns(1050, 700, 1);
 //creating the ground//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Play::CreateGameObject(TYPE_GROUND, { 1890, DISPLAY_HEIGHT }, 20, "Ground2");
-
 
 }
