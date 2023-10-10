@@ -22,7 +22,6 @@ enum HeroState
 	STATE_JUMP,
 	STATE_LAND,
 	STATE_WALK,
-	STATE_CLIMB,
 	STATE_DEAD,
 
 	STATE_PLAY,
@@ -46,6 +45,8 @@ enum GameObjectType
 struct GameState
 {
 	int health = 50; 
+
+	bool gameOver = false; 
 
 	int Gcollision = 0;
 	bool floorcollision = false;
@@ -121,7 +122,8 @@ void obj_GroundCollision(GameObjectType TYPE);
 void Jump(); 
 void fall();
 void Walk();
- 
+
+void gameOver(); 
 
 void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 {
@@ -458,7 +460,7 @@ void UpdateHero()
 				gamestate.herostate = STATE_JUMP;
 		}
 
-		if (gamestate.health == 0)
+		if (gamestate.health < 1)
 		{
 			gamestate.herostate = STATE_DEAD; 
 		}
@@ -493,10 +495,31 @@ void UpdateHero()
 
 		if (Play::IsAnimationComplete(obj_hero))
 		{
-			Play::DestroyGameObjectsByType(TYPE_HERO); 
+			gameOver(); 
+
 		}
 
+		if (Play::KeyDown(VK_SPACE))
+		{
+			gamestate.herostate = STATE_IDLE;
+		}
+		break; 
 	}
+
+}
+
+void gameOver()
+{
+	gamestate.gameOver = true; 
+
+	Play::DestroyGameObjectsByType(TYPE_HERO); 
+	Play::DestroyGameObjectsByType(TYPE_THIEF);
+	Play::DestroyGameObjectsByType(TYPE_OWL);
+	
+	Play::DestroyGameObjectsByType(TYPE_PLATFORM); 
+	Play::DestroyGameObjectsByType(TYPE_COIN);
+	Play::DestroyGameObjectsByType(TYPE_BLOCK); 
+	Play::DestroyGameObjectsByType(TYPE_THORN);
 
 }
 
@@ -1032,7 +1055,11 @@ void stats()
 	Play::DrawFontText("64px", "Hits: " + std::to_string(gamestate.SpriteHit), Point2D(50, 150), Play::LEFT);
 	Play::DrawFontText("64px", "Health: " + std::to_string(gamestate.health), Point2D(50, 200), Play::LEFT);
 
-
+	if (gamestate.gameOver)
+	{
+		Play::DrawFontText("132px", "GAME OVER", Point2D(640, 375), Play::CENTRE);
+		Play::DrawFontText("64px", "(The forest is no easy feat, press space to try again)", Point2D(640, 500), Play::CENTRE); 
+	}
 	//------------------ timer
 	//Play::DrawFontText("64px", "GameTime: " + std::to_string(gamestate.Gtime), Point2D(50, 270), Play::LEFT);
 	//Play::DrawFontText("64px", "JumpTime: " + std::to_string(gamestate.Jtime), Point2D(50, 310), Play::LEFT);
