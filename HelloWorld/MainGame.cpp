@@ -78,6 +78,9 @@ struct ObjectState
 	Point2f coinpos{ -100, -100 };
 	int CoinsCollected = 0; 
 	bool Coinsgiven = false; 
+	int dialogueClosed = 0; 
+
+	int bookmark = 0; 
 };
 
 ObjectState objectstate;
@@ -192,8 +195,6 @@ void UpdateDialogue()
 		Play::DrawObjectRotated(Play::GetGameObject(d));
 	}
 
-	//Play::DrawObjectRotated(Play::GetGameObjectByType(TYPE_DIALOGUE)); 
-
 	Dialogue(); 
 }
 
@@ -202,57 +203,197 @@ void Dialogue() // solve: multiple dialogues are created
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
 	GameObject& obj_owl = Play::GetGameObjectByType(TYPE_OWL);
 	GameObject& obj_thief = Play::GetGameObjectByType(TYPE_THIEF);   
+	bool boxRetrieved = false; 
 
-	bool firstcoin = false;
-	bool greet4 = false;  
-	int counter = 0;
+	if (&Play::GetGameObjectByType(TYPE_DIALOGUE) != &Play::noObject)
+	{
+		switch(objectstate.dialogueClosed)
+		{
+		case 0:
+			if (!Play::IsColliding(obj_hero, obj_owl) && !Play::IsColliding(obj_hero, obj_thief)) 
+			{
+				Play::DestroyGameObjectsByType(TYPE_DIALOGUE);
+			}
+			break;
 
-	
-	if (objectstate.CoinsCollected == 0 && 
-		Play::IsColliding(obj_hero, obj_owl)) 
-	{
-		Play::CreateGameObject(TYPE_DIALOGUE, { -630, 550 }, 100, "greet_1");
+		case 1:
+			if (Play::IsColliding(obj_hero, obj_owl))
+			{
+				Play::DestroyGameObjectsByType(TYPE_DIALOGUE);
+				objectstate.dialogueClosed = 0;  
+			}
+			break; 
+		}
 	}
-	else if ( objectstate.CoinsCollected < 5 && Play::IsColliding(obj_hero, obj_thief))
+	else
 	{
-		greet4 = true; 
-		Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x - 50, 350 }, 100, "greet_3_1");
-	}
-	else if ( (objectstate.CoinsCollected >= 6 && objectstate.CoinsCollected < 10 ) && Play::IsColliding(obj_hero, obj_thief)) //arbitrary values for testing -- coinscollected 
-	{
-		Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x - 50, 350 }, 100, "greet_4_1"); 
-	}
-	else if ((!objectstate.Coinsgiven &&  objectstate.CoinsCollected == 11 && Play::IsColliding(obj_hero, obj_thief))) //arbitrary values for testing -- coinscollected 
-	{
-		Play::CreateGameObject(TYPE_DIALOGUE, { obj_hero.pos.x - 150, obj_hero.pos.y - 50 }, 100, "greet_5_1"); 
-		objectstate.Coinsgiven = true; 
-	}
-	else if ( objectstate.Coinsgiven && objectstate.CoinsCollected == 11 && Play::IsColliding(obj_hero, obj_thief))	//arbitrary values for testing -- coinscollected 
-	{
-		Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x - 150, obj_thief.pos.y - 350 }, 100, "greet_6_1");
-	}
-	else if (objectstate.CoinsCollected == 11 && Play::IsColliding(obj_hero, obj_owl))							//arbitrary values for testing -- coinscollected 
-	{
-		Play::CreateGameObject(TYPE_DIALOGUE, {-650, 350 }, 100, "greet_7_1");
-	}
-	else if (!Play::IsColliding(obj_hero, obj_owl) )
-	{
-		Play::DestroyGameObjectsByType(TYPE_DIALOGUE);
+
+
+		switch (objectstate.bookmark)
+		{
+		case 0:
+			if (objectstate.CoinsCollected == 0 && Play::IsColliding(obj_hero, obj_owl))
+			{
+				Play::CreateGameObject(TYPE_DIALOGUE, { -630, 550 }, 100, "greet_1");
+			}
+			
+			if (objectstate.CoinsCollected == 1)
+			{
+				objectstate.bookmark = 1; 
+			}
+
+			break; 
+
+		case 1: 
+
+			if (objectstate.CoinsCollected == 1 && !Play::IsColliding(obj_hero, obj_owl))
+			{
+				objectstate.dialogueClosed = 1;
+				Play::CreateGameObject(TYPE_DIALOGUE, { -630, 650 }, 10, "greet_excl_1");
+			}
+			if (Play::IsColliding(obj_hero, obj_owl))
+			{
+				objectstate.bookmark = 5;
+			}
+
+
+			break; 
+
+		case 5:  
+
+			if (objectstate.CoinsCollected >= 1 && Play::IsColliding(obj_hero, obj_owl))
+			{
+				Play::CreateGameObject(TYPE_DIALOGUE, { -630, 550 }, 100, "greet_2_1");
+			}
+
+			if (Play::IsColliding(obj_hero, obj_thief) && objectstate.CoinsCollected <= 6 )
+			{
+				objectstate.bookmark = 10;
+			}
+
+			if (Play::IsColliding(obj_hero, obj_thief) && objectstate.CoinsCollected > 6)
+			{
+				objectstate.bookmark = 15;
+			}
+
+			break; 
+
+		case 10:
+
+			if (Play::IsColliding(obj_hero, obj_thief) && objectstate.CoinsCollected <= 6)
+			{
+				Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x + 50, 400 }, 100, "greet_3_1");  
+			}
+
+			if (Play::IsColliding(obj_hero, obj_owl) && objectstate.CoinsCollected < 11 )
+			{
+				objectstate.bookmark = 5; 
+			}
+
+			if (Play::IsColliding(obj_hero, obj_thief) && objectstate.CoinsCollected > 6)
+			{
+				objectstate.bookmark = 15;
+			}
+
+			break; 
+
+		case 15:
+
+			if (Play::IsColliding(obj_hero, obj_thief) && objectstate.CoinsCollected > 6 && objectstate.CoinsCollected < 11)
+			{
+				Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x + 50, 550 }, 100, "greet_4_1");
+			}
+
+			if (Play::IsColliding(obj_hero, obj_owl) && objectstate.CoinsCollected < 11)
+			{
+				objectstate.bookmark = 5;
+			}
+
+			if (Play::IsColliding(obj_hero, obj_thief) && objectstate.CoinsCollected == 11)
+			{
+				objectstate.bookmark = 20;
+			}
+
+			break; 
+
+		case 20:
+
+			if ((!objectstate.Coinsgiven && objectstate.CoinsCollected == 11 && Play::IsColliding(obj_hero, obj_thief))) //arbitrary values for testing -- coinscollected 
+			{
+				Play::CreateGameObject(TYPE_DIALOGUE, { obj_hero.pos.x - 150, obj_hero.pos.y - 50 }, 100, "greet_5_1");
+				objectstate.Coinsgiven = true;
+			}
+			else if (objectstate.Coinsgiven && objectstate.CoinsCollected == 11 && Play::IsColliding(obj_hero, obj_thief))	//arbitrary values for testing -- coinscollected 
+			{
+				Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x - 150, obj_thief.pos.y - 350 }, 100, "greet_6_1");
+			}
+
+			if (Play::IsColliding(obj_hero, obj_owl))
+			{
+				objectstate.bookmark = 25;
+			}
+
+		case 25:
+
+			if (Play::IsColliding(obj_hero, obj_owl)) 
+			{
+				Play::CreateGameObject(TYPE_DIALOGUE, { obj_owl.pos.x + 50, obj_thief.pos.y - 250 }, 100, "greet_7_1"); 
+			}
+
+
+		}
+
+
+		/*
+		bool firstcoin = false;
+		bool greet4 = false;
+		int counter = 0;
+
+
+		else if (objectstate.CoinsCollected < 5 && Play::IsColliding(obj_hero, obj_thief))
+		{
+			greet4 = true;
+			Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x - 50, 350 }, 100, "greet_3_1");
+		}
+		else if ((objectstate.CoinsCollected >= 6 && objectstate.CoinsCollected < 10) && Play::IsColliding(obj_hero, obj_thief)) //arbitrary values for testing -- coinscollected 
+		{
+			Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x - 50, 350 }, 100, "greet_4_1");
+		}
+		else if ((!objectstate.Coinsgiven && objectstate.CoinsCollected == 11 && Play::IsColliding(obj_hero, obj_thief))) //arbitrary values for testing -- coinscollected 
+		{
+			Play::CreateGameObject(TYPE_DIALOGUE, { obj_hero.pos.x - 150, obj_hero.pos.y - 50 }, 100, "greet_5_1");
+			objectstate.Coinsgiven = true;
+		}
+		else if (objectstate.Coinsgiven && objectstate.CoinsCollected == 11 && Play::IsColliding(obj_hero, obj_thief))	//arbitrary values for testing -- coinscollected 
+		{
+			Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x - 150, obj_thief.pos.y - 350 }, 100, "greet_6_1");
+		}
+		else if (objectstate.CoinsCollected == 11 && Play::IsColliding(obj_hero, obj_owl))							//arbitrary values for testing -- coinscollected 
+		{
+			Play::CreateGameObject(TYPE_DIALOGUE, { -650, 350 }, 100, "greet_7_1");
+		}
+
+
+		else if (objectstate.CoinsCollected == 1 && !Play::IsColliding(obj_hero, obj_owl))
+		{
+			objectstate.dialogueClosed = 1; 
+			Play::CreateGameObject(TYPE_DIALOGUE, { -630, 650 }, 10, "greet_excl_1");
+		}
+
+		else if (objectstate.CoinsCollected >= 1 &&
+			objectstate.CoinsCollected < 11 &&
+			Play::IsColliding(obj_hero, obj_owl))
+		{
+			//Play::DestroyGameObjectsByType(TYPE_DIALOGUE);   
+			Play::CreateGameObject(TYPE_DIALOGUE, { -630, 550 }, 100, "greet_2_1");
+		}
+
+		*/ 
 	}
 
-	if (objectstate.CoinsCollected == 1 )
-	{
-		firstcoin = true; 
-		Play::CreateGameObject(TYPE_DIALOGUE, { -630, 650 }, 10, "greet_excl_1"); 
-	} 
 
-	if (objectstate.CoinsCollected >= 1 && 
-		objectstate.CoinsCollected < 11 &&
-		Play::IsColliding(obj_hero, obj_owl))
-	{
-		//Play::DestroyGameObjectsByType(TYPE_DIALOGUE);   
-		Play::CreateGameObject(TYPE_DIALOGUE, { -630, 550 }, 100, "greet_2_1");
-	}
+
+
 
 }
 
@@ -290,7 +431,7 @@ void Draw()
 
 	//draw thief
 	Play::DrawObjectRotated(Play::GetGameObjectByType(TYPE_THIEF));
-	Play::CentreMatchingSpriteOrigins("Dude_Monster"); 
+	Play::CentreMatchingSpriteOrigins("Dude_Monster_Idle_4"); 
 
 	thorns(); 
 
@@ -324,7 +465,7 @@ void UpdateHero()
 	switch (gamestate.herostate)
 	{
 	case STATE_IDLE:
-		Play::DrawFontText("64px", "PRESS ENTER TO START", { DISPLAY_WIDTH / 2, DISPLAY_HEIGHT - 300 }, Play::CENTRE);
+		Play::DrawFontText("64px", "PRESS ENTER TO START", { -450, DISPLAY_HEIGHT - 500 }, Play::CENTRE);
 		Play::PresentDrawingBuffer();
 
 		Play::SetSprite(obj_hero, "Pink_Monster", 0.05f);
