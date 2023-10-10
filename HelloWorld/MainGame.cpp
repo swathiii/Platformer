@@ -234,7 +234,7 @@ void Dialogue() // solve: multiple dialogues are created
 		case 0:
 			if (objectstate.CoinsCollected == 0 && Play::IsColliding(obj_hero, obj_owl))
 			{
-				Play::CreateGameObject(TYPE_DIALOGUE, { -630, 550 }, 100, "greet_1");
+				Play::CreateGameObject(TYPE_DIALOGUE, { -630, 550 }, 10, "greet_1");
 			}
 			
 			if (objectstate.CoinsCollected == 1)
@@ -249,7 +249,7 @@ void Dialogue() // solve: multiple dialogues are created
 			if (objectstate.CoinsCollected == 1 && !Play::IsColliding(obj_hero, obj_owl))
 			{
 				objectstate.dialogueClosed = 1;
-				Play::CreateGameObject(TYPE_DIALOGUE, { -630, 650 }, 10, "greet_excl_1");
+				Play::CreateGameObject(TYPE_DIALOGUE, { -630, 610 }, 10, "greet_excl_1");
 			}
 			if (Play::IsColliding(obj_hero, obj_owl))
 			{
@@ -263,7 +263,7 @@ void Dialogue() // solve: multiple dialogues are created
 
 			if (objectstate.CoinsCollected >= 1 && Play::IsColliding(obj_hero, obj_owl))
 			{
-				Play::CreateGameObject(TYPE_DIALOGUE, { -630, 550 }, 100, "greet_2_1");
+				Play::CreateGameObject(TYPE_DIALOGUE, { -630, 600 }, 10, "greet_2_1");
 			}
 
 			if (Play::IsColliding(obj_hero, obj_thief) && objectstate.CoinsCollected <= 6 )
@@ -282,7 +282,7 @@ void Dialogue() // solve: multiple dialogues are created
 
 			if (Play::IsColliding(obj_hero, obj_thief) && objectstate.CoinsCollected <= 6)
 			{
-				Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x + 50, 400 }, 100, "greet_3_1");  
+				Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x , 450 }, 10, "greet_3_1");  
 			}
 
 			if (Play::IsColliding(obj_hero, obj_owl) && objectstate.CoinsCollected < 11 )
@@ -301,7 +301,7 @@ void Dialogue() // solve: multiple dialogues are created
 
 			if (Play::IsColliding(obj_hero, obj_thief) && objectstate.CoinsCollected > 6 && objectstate.CoinsCollected < 11)
 			{
-				Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x + 50, 550 }, 100, "greet_4_1");
+				Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x + 50, 600 }, 10, "greet_4_1");
 			}
 
 			if (Play::IsColliding(obj_hero, obj_owl) && objectstate.CoinsCollected < 11)
@@ -313,7 +313,6 @@ void Dialogue() // solve: multiple dialogues are created
 			{
 				objectstate.bookmark = 20;
 			}
-
 			break; 
 
 		case 20:
@@ -325,21 +324,28 @@ void Dialogue() // solve: multiple dialogues are created
 			}
 			else if (objectstate.Coinsgiven && objectstate.CoinsCollected == 11 && Play::IsColliding(obj_hero, obj_thief))	//arbitrary values for testing -- coinscollected 
 			{
-				Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x - 150, obj_thief.pos.y - 350 }, 100, "greet_6_1");
+				Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x - 100 , obj_thief.pos.y - 150 }, 100, "greet_6_1");
 			}
 
 			if (Play::IsColliding(obj_hero, obj_owl))
 			{
 				objectstate.bookmark = 25;
 			}
+			break; 
 
-		case 25:
+		case 25: 
 
 			if (Play::IsColliding(obj_hero, obj_owl)) 
 			{
-				Play::CreateGameObject(TYPE_DIALOGUE, { obj_owl.pos.x + 50, obj_thief.pos.y - 250 }, 100, "greet_7_1"); 
+				Play::CreateGameObject(TYPE_DIALOGUE, { obj_owl.pos.x + 40, obj_owl.pos.y - 180 }, 100, "greet_7_1"); 
 			}
 
+			if (Play::IsColliding(obj_hero, obj_thief))
+			{
+				Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x + 20 , obj_thief.pos.y - 150 }, 100, "greet_8_1");
+			}
+
+			break;  
 
 		}
 
@@ -556,7 +562,7 @@ void UpdateThief( )
 	{
 	case STATE_IDLE:
 		Play::SetSprite(obj_thief, "Dude_Monster_Idle_4", 0.05f);
-		obj_thief.pos = { 950, DISPLAY_HEIGHT - 70 };
+		obj_thief.pos = { 920, DISPLAY_HEIGHT - 70 };
 		obj_thief.velocity = { 0, 0 };
 		if (Play::KeyDown(VK_RETURN))
 		{
@@ -1040,8 +1046,8 @@ void stats()
 {
 
 	Point2D mcoord = Play::GetMousePos();
-	int mouse_x = mcoord.x; 
-	int mouse_y = mcoord.y; 
+	int mouse_x = mcoord.x;  
+ 	int mouse_y = mcoord.y; 
 
 	
 	Play::SetDrawingSpace(Play::SCREEN);
