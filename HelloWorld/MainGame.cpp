@@ -2,6 +2,7 @@
 #define PLAY_USING_GAMEOBJECT_MANAGER
 #include "Play.h" 
 
+
 int DISPLAY_WIDTH = 1280;
 int DISPLAY_HEIGHT = 750;
 int DISPLAY_SCALE = 1;
@@ -348,58 +349,7 @@ void Dialogue() // solve: multiple dialogues are created
 			break;  
 
 		}
-
-
-		/*
-		bool firstcoin = false;
-		bool greet4 = false;
-		int counter = 0;
-
-
-		else if (objectstate.CoinsCollected < 5 && Play::IsColliding(obj_hero, obj_thief))
-		{
-			greet4 = true;
-			Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x - 50, 350 }, 100, "greet_3_1");
-		}
-		else if ((objectstate.CoinsCollected >= 6 && objectstate.CoinsCollected < 10) && Play::IsColliding(obj_hero, obj_thief)) //arbitrary values for testing -- coinscollected 
-		{
-			Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x - 50, 350 }, 100, "greet_4_1");
-		}
-		else if ((!objectstate.Coinsgiven && objectstate.CoinsCollected == 11 && Play::IsColliding(obj_hero, obj_thief))) //arbitrary values for testing -- coinscollected 
-		{
-			Play::CreateGameObject(TYPE_DIALOGUE, { obj_hero.pos.x - 150, obj_hero.pos.y - 50 }, 100, "greet_5_1");
-			objectstate.Coinsgiven = true;
-		}
-		else if (objectstate.Coinsgiven && objectstate.CoinsCollected == 11 && Play::IsColliding(obj_hero, obj_thief))	//arbitrary values for testing -- coinscollected 
-		{
-			Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x - 150, obj_thief.pos.y - 350 }, 100, "greet_6_1");
-		}
-		else if (objectstate.CoinsCollected == 11 && Play::IsColliding(obj_hero, obj_owl))							//arbitrary values for testing -- coinscollected 
-		{
-			Play::CreateGameObject(TYPE_DIALOGUE, { -650, 350 }, 100, "greet_7_1");
-		}
-
-
-		else if (objectstate.CoinsCollected == 1 && !Play::IsColliding(obj_hero, obj_owl))
-		{
-			objectstate.dialogueClosed = 1; 
-			Play::CreateGameObject(TYPE_DIALOGUE, { -630, 650 }, 10, "greet_excl_1");
-		}
-
-		else if (objectstate.CoinsCollected >= 1 &&
-			objectstate.CoinsCollected < 11 &&
-			Play::IsColliding(obj_hero, obj_owl))
-		{
-			//Play::DestroyGameObjectsByType(TYPE_DIALOGUE);   
-			Play::CreateGameObject(TYPE_DIALOGUE, { -630, 550 }, 100, "greet_2_1");
-		}
-
-		*/ 
 	}
-
-
-
-
 
 }
 
@@ -464,9 +414,14 @@ void UpdateHero()
 {
 	GameObject& obj_ground = Play::GetGameObjectByType(TYPE_GROUND);
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
-
-
 	obj_hero.scale = 1.8f;
+
+	//setting bounds-restricted movement for obi - sides
+	if (obj_hero.pos.x < -720 || obj_hero.pos.x > 3120)
+	{
+		obj_hero.pos.x = std::clamp(obj_hero.pos.x, -720.f, 3120.f);    
+	}
+
 
 	switch (gamestate.herostate)
 	{
