@@ -45,6 +45,7 @@ enum GameObjectType
 
 struct GameState
 {
+	int health = 50; 
 
 	int Gcollision = 0;
 	bool floorcollision = false;
@@ -442,7 +443,6 @@ void UpdateHero()
 	case STATE_FALL: 
 
 		fall();
- 
 
 		if (gamestate.floorcollision || gamestate.platcollision)
 		{
@@ -457,6 +457,12 @@ void UpdateHero()
 		{
 				gamestate.herostate = STATE_JUMP;
 		}
+
+		if (gamestate.health == 0)
+		{
+			gamestate.herostate = STATE_DEAD; 
+		}
+
 		break;
 
 	case STATE_JUMP:
@@ -479,6 +485,16 @@ void UpdateHero()
 		Collision();
 		groundcollision();
 		break;
+
+
+	case STATE_DEAD: 
+
+		Play::SetSprite(obj_hero, "Pink_Monster_Death_8", 0.05f);
+
+		if (Play::IsAnimationComplete(obj_hero))
+		{
+			Play::DestroyGameObjectsByType(TYPE_HERO); 
+		}
 
 	}
 
@@ -980,6 +996,7 @@ void thorncollision()
 		{
 			gamestate.SpriteHurt = true;   
 			gamestate.SpriteHit += 1; 
+			gamestate.health -= 1; 
 
 			Play::SetSprite(obj_hero, "Pink_Monster_Hurt_4", 0.30f); 
 
@@ -1013,7 +1030,9 @@ void stats()
 
 	Play::DrawFontText("64px", "Coins: " + std::to_string(objectstate.CoinsCollected), Point2D(50, 70), Play::LEFT);
 	Play::DrawFontText("64px", "Hits: " + std::to_string(gamestate.SpriteHit), Point2D(50, 150), Play::LEFT);
-	
+	Play::DrawFontText("64px", "Health: " + std::to_string(gamestate.health), Point2D(50, 200), Play::LEFT);
+
+
 	//------------------ timer
 	//Play::DrawFontText("64px", "GameTime: " + std::to_string(gamestate.Gtime), Point2D(50, 270), Play::LEFT);
 	//Play::DrawFontText("64px", "JumpTime: " + std::to_string(gamestate.Jtime), Point2D(50, 310), Play::LEFT);
