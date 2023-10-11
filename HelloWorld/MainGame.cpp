@@ -238,6 +238,7 @@ bool MainGameUpdate(float elapsedTime)
 			objectstate.CoinsCollected = 0; 
 			gamestate.SpriteHit = 0; 
 			gamestate.health = 10; 
+			objectstate.bookmark = 0; 
 
 			gamestate.gamestage = STATE_START; 
 			obj_hero.pos = { -600, DISPLAY_HEIGHT - 100 }; 
@@ -498,6 +499,7 @@ void UpdateHero()
 	case STATE_IDLE:
 	/*	Play::DrawFontText("64px", "PRESS ENTER TO START", { -450, DISPLAY_HEIGHT - 400 }, Play::CENTRE);
 		Play::PresentDrawingBuffer();*/
+		gamestate.gameOver = false; 
 
 		Play::SetSprite(obj_hero, "Pink_Monster", 0.05f);
 		obj_hero.pos = { -600, DISPLAY_HEIGHT - 100 };
