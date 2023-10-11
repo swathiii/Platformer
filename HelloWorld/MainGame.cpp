@@ -18,6 +18,7 @@ enum GameStage
 {
 	STATE_START,
 	STATE_GAME, 
+	STATE_WIN,  
 	GAME_OVER,
 };
 
@@ -47,6 +48,8 @@ enum GameObjectType
 	TYPE_GROUND,
 	TYPE_COIN,
 	TYPE_THORN,
+
+	TYPE_PHOTO,  
 };
 
 struct GameState
@@ -54,6 +57,8 @@ struct GameState
 	int health = 10; 
 
 	bool gameOver = false; 
+	bool gameWon = false; 
+
 
 	int Gcollision = 0;
 	bool floorcollision = false;
@@ -66,8 +71,8 @@ struct GameState
 
 	const Vector2D gravity = { 0, 2.5f };
 	const Vector2D fall = { 0, 0.5f };  
-	const Vector2D jumpright = { 0.3f, 0 };
-	const Vector2D jumpleft = { -0.3f, 0 };
+	const Vector2D jumpright = { 0.1f, 0 };
+	const Vector2D jumpleft = { -0.1f, 0 };
 	const Vector2D thrust = { 0, -3 };
 
 	double Gtime = 0.0; 
@@ -88,7 +93,10 @@ struct ObjectState
 	int maxcoins = 6;
 	Point2f coinpos{ -100, -100 };
 	int CoinsCollected = 0; 
+
 	bool Coinsgiven = false; 
+	bool boxGiven = false; 
+
 	int dialogueClosed = 0; 
 
 	int bookmark = 0; 
@@ -131,7 +139,8 @@ void Jump();
 void fall();
 void Walk();
 
-void gameOver(); 
+void gameOver();
+void photo(); 
 
 void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 {
@@ -149,6 +158,11 @@ void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 bool MainGameUpdate(float elapsedTime)
 {
 
+	if (objectstate.boxGiven && Play::KeyDown(VK_RETURN))
+	{
+		gamestate.gameWon = true; 
+	}
+
 	switch (gamestate.gamestage)
 	{
 	case STATE_START:
@@ -163,7 +177,7 @@ bool MainGameUpdate(float elapsedTime)
 
 		Draw();
 
-		Play::DrawFontText("64px", "PRESS ENTER TO START", { -450, DISPLAY_HEIGHT - 500 }, Play::CENTRE);
+		Play::DrawFontText("64px", "PRESS ENTER TO START", { -450, DISPLAY_HEIGHT - 400 }, Play::CENTRE);
 		Play::PresentDrawingBuffer();
 
 		if (Play::KeyDown(VK_RETURN)) 
@@ -214,10 +228,27 @@ bool MainGameUpdate(float elapsedTime)
 
 		thorncollision();
 
+		if (gamestate.gameWon)
+		{
+			gamestate.gamestage = STATE_WIN;
+		}
+
 		if (gamestate.gameOver)
 		{
 			gamestate.gamestage = GAME_OVER;
 		}
+		break; 
+
+	case STATE_WIN:
+		
+		gameOver(); 
+		Draw();  
+		photo(); 
+
+
+		Play::DestroyGameObjectsByType(TYPE_THIEF);
+		Play::DestroyGameObjectsByType(TYPE_OWL);
+		Play::DestroyGameObjectsByType(TYPE_DIALOGUE); 
 
 		break; 
 
@@ -352,7 +383,7 @@ void Dialogue() // solve: multiple dialogues are created
 
 		case 10:
 
-			if (Play::IsColliding(obj_hero, obj_thief) && objectstate.CoinsCollected <= 6)
+			if (Play::IsColliding(obj_hero, obj_thief) && objectstate.CoinsCollected <=  6 )
 			{
 				Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x , 450 }, 10, "greet_3_1");  
 			}
@@ -376,12 +407,12 @@ void Dialogue() // solve: multiple dialogues are created
 				Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x + 50, 600 }, 10, "greet_4_1");
 			}
 
-			if (Play::IsColliding(obj_hero, obj_owl) && objectstate.CoinsCollected < 11)
+			if (Play::IsColliding(obj_hero, obj_owl) && objectstate.CoinsCollected < 11 )
 			{
 				objectstate.bookmark = 5;
 			}
 
-			if (Play::IsColliding(obj_hero, obj_thief) && objectstate.CoinsCollected == 11)
+			if (Play::IsColliding(obj_hero, obj_thief) && objectstate.CoinsCollected == 11 )
 			{
 				objectstate.bookmark = 20;
 			}
@@ -389,12 +420,12 @@ void Dialogue() // solve: multiple dialogues are created
 
 		case 20:
 
-			if ((!objectstate.Coinsgiven && objectstate.CoinsCollected == 11 && Play::IsColliding(obj_hero, obj_thief))) //arbitrary values for testing -- coinscollected 
+			if ((!objectstate.Coinsgiven && objectstate.CoinsCollected == 11 && Play::IsColliding(obj_hero, obj_thief))) 
 			{
 				Play::CreateGameObject(TYPE_DIALOGUE, { obj_hero.pos.x - 150, obj_hero.pos.y - 50 }, 100, "greet_5_1");
 				objectstate.Coinsgiven = true;
 			}
-			else if (objectstate.Coinsgiven && objectstate.CoinsCollected == 11 && Play::IsColliding(obj_hero, obj_thief))	//arbitrary values for testing -- coinscollected 
+			else if (objectstate.Coinsgiven && objectstate.CoinsCollected == 11 && Play::IsColliding(obj_hero, obj_thief))	 
 			{
 				Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x - 100 , obj_thief.pos.y - 150 }, 100, "greet_6_1");
 			}
@@ -410,13 +441,14 @@ void Dialogue() // solve: multiple dialogues are created
 			if (Play::IsColliding(obj_hero, obj_owl)) 
 			{
 				Play::CreateGameObject(TYPE_DIALOGUE, { obj_owl.pos.x + 40, obj_owl.pos.y - 180 }, 100, "greet_7_1"); 
+
+				objectstate.boxGiven = true;
 			}
 
 			if (Play::IsColliding(obj_hero, obj_thief))
 			{
 				Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x + 20 , obj_thief.pos.y - 150 }, 100, "greet_8_1");
-			}
-
+			} 
 			break;  
 
 		}
@@ -460,6 +492,11 @@ void Draw()
 	Play::DrawObjectRotated(Play::GetGameObjectByType(TYPE_THIEF));
 	Play::CentreMatchingSpriteOrigins("Dude_Monster_Idle_4"); 
 
+	if (gamestate.gameWon)
+	{
+		Play::DrawObjectRotated(Play::GetGameObjectByType(TYPE_PHOTO)); 
+	}
+
 	thorns(); 
 
 	blocks(); 
@@ -502,7 +539,7 @@ void UpdateHero()
 		gamestate.gameOver = false; 
 
 		Play::SetSprite(obj_hero, "Pink_Monster", 0.05f);
-		obj_hero.pos = { -600, DISPLAY_HEIGHT - 100 };
+		obj_hero.pos = { -615, DISPLAY_HEIGHT - 100 };
 		obj_hero.velocity = { 0, 0 };
 
 		if (Play::KeyDown(VK_RETURN))
@@ -533,7 +570,14 @@ void UpdateHero()
 		{
 			gamestate.herostate = STATE_DEAD; 
 		}
+
+		if (!gamestate.floorcollision && !gamestate.platcollision)
+		{
+			gamestate.herostate = STATE_FALL;
+		}
+
 		break;
+
 
 	case STATE_JUMP:
 
@@ -551,12 +595,6 @@ void UpdateHero()
 		}
 		break;
 
-	case STATE_LAND:
-		Collision();
-		groundcollision();
-		break;
-
-
 	case STATE_DEAD: 
 
 		Play::SetSprite(obj_hero, "Pink_Monster_Death_8", 0.05f);
@@ -571,8 +609,8 @@ void UpdateHero()
 		{
 			gamestate.herostate = STATE_IDLE; 
 		}
-
 		break; 
+
 	}
 
 }
@@ -590,6 +628,19 @@ void gameOver()
 	Play::DestroyGameObjectsByType(TYPE_BLOCK); 
 	Play::DestroyGameObjectsByType(TYPE_THORN);
 	Play::DestroyGameObjectsByType(TYPE_GROUND); 
+}
+
+void photo()
+{
+	if (&Play::GetGameObjectByType(TYPE_PHOTO) != &Play::noObject)
+	{
+		return; 
+	}
+
+	Play::CreateGameObject(TYPE_PHOTO, { 640, 350 }, 10, "photo_2_1");
+	GameObject& obj_photo = Play::GetGameObjectByType(TYPE_PHOTO);
+	obj_photo.pos = { -400, DISPLAY_HEIGHT - 700 };
+
 }
 
 void UpdateOwl()
@@ -695,10 +746,19 @@ void fall()
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
 	if (!gamestate.floorcollision && !gamestate.platcollision)
 	{
-		obj_hero.velocity = { 0, 3.98f };
+		
+		if (!gamestate.SpriteFaceLeft)
+		{
+			obj_hero.velocity = { 1.f, 3.98f }; //for a diagonal fall
+
+		}
+		if (gamestate.SpriteFaceLeft)
+		{
+			obj_hero.velocity = { -1.f , 3.98f }; //for a diagonal fall
+		}
 
 	}
-	
+
 	//acceleration
 	obj_hero.acceleration = Vector2D(0.f, 0.2f);
 
@@ -713,14 +773,14 @@ void Walk()
 	if (Play::KeyDown(VK_RIGHT))
 	{
 		gamestate.SpriteFaceLeft = false;
-		obj_hero.velocity = { 3, 0 };
+		obj_hero.velocity = { 4, 0 };
 		obj_hero.pos += obj_hero.velocity;
 		Play::SetSprite(obj_hero, "Pink_Monster_Walk_Right_6", 0.10f);
 	}
 	else if (Play::KeyDown(VK_LEFT))
 	{
 		gamestate.SpriteFaceLeft = true;
-		obj_hero.velocity = { -3, 0 };
+		obj_hero.velocity = { -4, 0 };
 		obj_hero.pos += obj_hero.velocity;
 		Play::SetSprite(obj_hero, "Pink_Monster_Walk_Left_6", 0.10f);
 	}
@@ -745,7 +805,7 @@ void Jump()
 {
 	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO); 
 
-	if (Play::KeyDown(VK_SPACE) && gamestate.Jtime < 0.4) 
+	if (Play::KeyDown(VK_SPACE) && gamestate.Jtime < 0.5) 
 	{
 		if (gamestate.SpriteStanding)
 		{
@@ -763,24 +823,34 @@ void Jump()
 			{
 				Play::SetSprite(obj_hero, "Pink_Monster_Jump_Left_8", 0.10f);
 			}
+		}
+	}
 
-		}
-		
-		if (Play::KeyDown(VK_SPACE) && Play::KeyDown(VK_RIGHT) ) 
-		{
+	//jump right
+	if (gamestate.SpriteStanding && 
+		Play::KeyDown(VK_SPACE) && 
+		Play::KeyDown(VK_RIGHT) &&
+		gamestate.Jtime < 0.1)
+	{
+		Play::SetSprite(obj_hero, "Pink_Monster_Jump_8", 0.10f);
+		obj_hero.velocity += gamestate.thrust * 0.9 ;
+		obj_hero.velocity += { 0.5f, 0 }; 
+		obj_hero.velocity += gamestate.gravity;
+		obj_hero.pos += obj_hero.velocity;
+	}
+
+	//jump left
+	if (gamestate.SpriteStanding &&
+		Play::KeyDown(VK_SPACE) &&
+		Play::KeyDown(VK_LEFT) &&
+		gamestate.Jtime < 0.1)
+	{
+		Play::SetSprite(obj_hero, "Pink_Monster_Jump_Left_8", 0.10f);
+
 			obj_hero.velocity += gamestate.thrust * 0.9 ;
-			obj_hero.velocity += gamestate.jumpright;
+			obj_hero.velocity += { -0.5f, 0 };
 			obj_hero.velocity += gamestate.gravity;
 			obj_hero.pos += obj_hero.velocity;
-		}
-		
-		if (Play::KeyDown(VK_SPACE) && Play::KeyDown(VK_LEFT)) 
-		{
-			obj_hero.velocity += gamestate.thrust * 0.9 ;
-			obj_hero.velocity += gamestate.jumpleft;
-			obj_hero.velocity += gamestate.gravity;
-			obj_hero.pos += obj_hero.velocity;
-		}
 	}
 }
 
@@ -1110,8 +1180,8 @@ void stats()
 {
 
 	Point2D mcoord = Play::GetMousePos();
-	int mouse_x = mcoord.x;  
- 	int mouse_y = mcoord.y; 
+	int mouse_x = mcoord.x;          
+ 	int mouse_y =   mcoord.y; 
 
 	
 	Play::SetDrawingSpace(Play::SCREEN);
@@ -1120,15 +1190,24 @@ void stats()
 	//Play::DrawFontText("64px", "X: " + std::to_string(mouse_x), Point2D(50, 450), Play::LEFT);
 	//Play::DrawFontText("64px", "Y: " + std::to_string(mouse_y), Point2D(50, 400), Play::LEFT); 
 
-	Play::DrawFontText("64px", "Coins: " + std::to_string(objectstate.CoinsCollected), Point2D(50, 70), Play::LEFT);
-	Play::DrawFontText("64px", "Hits: " + std::to_string(gamestate.SpriteHit), Point2D(50, 150), Play::LEFT);
-	Play::DrawFontText("64px", "Health: " + std::to_string(gamestate.health), Point2D(50, 200), Play::LEFT);
+	//Play::DrawFontText("64px", "Hits: " + std::to_string(gamestate.SpriteHit), Point2D(50, 150), Play::LEFT);
+	//Play::DrawFontText("64px", "Box Given: " + std::to_string(objectstate.boxGiven), Point2D(50, 150), Play::LEFT);
+
+	Play::DrawFontText("64px", "Coins: " + std::to_string(objectstate.CoinsCollected), Point2D(50, 50), Play::LEFT);
+	
+	Play::DrawFontText("64px", "Health: " + std::to_string(gamestate.health), Point2D(50, 100), Play::LEFT);
 
 	if (gamestate.gameOver)
 	{
 		Play::DrawFontText("132px", "GAME OVER", Point2D(640, 375), Play::CENTRE);
 		Play::DrawFontText("64px", "(The forest is no easy feat, press space to try again)", Point2D(640, 500), Play::CENTRE); 
 	}
+
+	if (objectstate.boxGiven && !gamestate.gameWon)
+	{
+		Play::DrawFontText("64px", "Press Enter to take a look", Point2D(400, 300), Play::CENTRE);
+	}
+
 	//------------------ timer
 	//Play::DrawFontText("64px", "GameTime: " + std::to_string(gamestate.Gtime), Point2D(50, 270), Play::LEFT);
 	//Play::DrawFontText("64px", "JumpTime: " + std::to_string(gamestate.Jtime), Point2D(50, 310), Play::LEFT);
@@ -1140,6 +1219,8 @@ void stats()
 	//Play::DrawFontText("64px", "Camera Coord Y: " + std::to_string(gamestate.camera_cord_y), Point2D(50, 400), Play::LEFT);
 	//Play::SetDrawingSpace(Play::WORLD);
 	
+
+	//----------------------- collision 
 	//ground collision 
 	//if (gamestate.floorcollision)
 	//{
@@ -1161,6 +1242,12 @@ void stats()
 	//}
 
 	Play::SetDrawingSpace(Play::WORLD);
+
+	if (!gamestate.gameWon)
+	{
+		Play::DrawFontText("64px", "Arrow Keys to Move", Point2D(-700, 500), Play::LEFT);
+		Play::DrawFontText("64px", "Space to Jump", Point2D(-700, 450), Play::LEFT);
+	}
 
 	//Play::SetDrawingSpace(Play::SCREEN);
 	//Play::SetDrawingSpace(Play::WORLD);
@@ -1201,19 +1288,19 @@ void map()
 															createblocks(120, 80);
 				/*	createblocks(100, 100); */
 										createblocks(250, 180); 
-
+					createcoins(100, 210, 1);
 					createblocks(100, 280);																	createcoins(850, 250, 5);																																																					createcoins(2000, 250 , 4);
 																													createplatforms(950, 300);								createblocks(1200, 300);																					createblocks(1800, 350);								createplatforms(2050, 300);
-																																	  createthorns(1050, 350, 1);										createcoins(1350, 350, 3);																						createthorns(1955, 350, 1);
-										createblocks(250, 380);			/*createblocks(690, 380);*/				createcoins(850, 380, 4); createthorns(1050, 380, 1);				createthorns(1300, 380, 1);					createthorns(1500, 380, 1);			createblocks(1650, 380);								createthorns(1955, 380, 1);		createcoins(2000, 380, 4);			createblocks(2300, 380);
-																																	  createthorns(1050, 400, 1);									createplatforms(1400, 400);																							createthorns(1955, 400, 1);																	createblocks(2400, 480);
-				createblocks(100, 480);																			createplatforms(950, 450);																																																		createplatforms(2050, 450);																	createblocks(2500, 580);
-																																																																																																																	createblocks(2600, 670);																																																																																																										
+										createcoins(250, 310, 1);																	  createthorns(1050, 350, 1);										createcoins(1350, 350, 3);																						createthorns(1955, 350, 1);												createcoins(2300, 320, 1);
+										createblocks(250, 380);			/*createblocks(690, 380);*/				createcoins(850, 380, 4); createthorns(1050, 380, 1);				createthorns(1300, 380, 1);					createthorns(1500, 380, 1);			createblocks(1650, 380);								createthorns(1955, 380, 1);		createcoins(2000, 380, 4);			createblocks(2300, 380);	createcoins(2400, 420, 1);
+				createcoins(100, 410, 1);																							  createthorns(1050, 400, 1);									createplatforms(1400, 400);																							createthorns(1955, 400, 1);																			createblocks(2400, 480);	createcoins(2500, 520, 1);
+				createblocks(100, 480);																			createplatforms(950, 450);																																																		createplatforms(2050, 450);																				createblocks(2500, 580);	createcoins(2600, 620, 1);
+																																																																																																																					createblocks(2600, 670);																																																																																																										
 																																		createthorns(1050, 500, 1);
 								createcoins(250, 500, 5);				createcoins(650, 400, 1);										createthorns(1050, 540, 1);
 								createplatforms(350, 550);				createblocks(650, 470);											createthorns(1050, 570, 1);
 																																		createthorns(1050, 600, 1);
-																																		createthorns(1050, 640, 1);
+		createcoins(100, 580, 1);																										createthorns(1050, 640, 1);
 		createblocks(100, 650);																											createthorns(1050, 670, 1);
 																																		createthorns(1050, 700, 1);
 //creating the ground//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
