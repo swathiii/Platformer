@@ -14,10 +14,17 @@ const Vector2D PLATFORM_AABB{ 120.0f, 30.0f };
 const Vector2D HERO_AABB{ 10.0f, 20.0f };
 const Vector2D BLOCK_AABB{ 27.f, 27.f };
 
+enum GameStage
+{
+	STATE_START,
+	STATE_GAME, 
+	GAME_OVER,
+};
 
 enum HeroState
 {
 	STATE_IDLE,
+
 	STATE_FALL,
 	STATE_JUMP,
 	STATE_LAND,
@@ -44,7 +51,7 @@ enum GameObjectType
 
 struct GameState
 {
-	int health = 50; 
+	int health = 10; 
 
 	bool gameOver = false; 
 
@@ -71,6 +78,7 @@ struct GameState
 	int camera_cord_y = 0;
 
 	HeroState herostate = STATE_IDLE;
+	GameStage gamestage = STATE_START; 
 };
 
 GameState gamestate;
@@ -135,52 +143,111 @@ void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 	Play::CreateGameObject(TYPE_OWL, { -250, DISPLAY_HEIGHT - 50 }, 40, "Owlet_Monster_Idle_4");
 	Play::CreateGameObject(TYPE_THIEF, { 610, DISPLAY_HEIGHT - 50 }, 40, "Dude_Monster_Idle_4"); 
 
-
 	map();    
 } 
 
 bool MainGameUpdate(float elapsedTime)
 {
-	gamestate.Gtime += elapsedTime;  
 
-	if (Play::KeyDown(VK_SPACE))
+	switch (gamestate.gamestage)
 	{
-		gamestate.Jtime += elapsedTime; 
+	case STATE_START:
+
+		UpdateCamera();
+
+		UpdateHero();
+
+		UpdateOwl();
+
+		UpdateThief();
+
+		Draw();
+
+		Play::DrawFontText("64px", "PRESS ENTER TO START", { -450, DISPLAY_HEIGHT - 500 }, Play::CENTRE);
+		Play::PresentDrawingBuffer();
+
+		if (Play::KeyDown(VK_RETURN)) 
+		{
+			gamestate.gamestage = STATE_GAME; 
+		}
+		break; 
+
+	case STATE_GAME: 
+
+		gamestate.Gtime += elapsedTime;
+
+		if (Play::KeyDown(VK_SPACE))
+		{
+			gamestate.Jtime += elapsedTime;
+		}
+		else
+		{
+			gamestate.Jtime = 0.0;
+		}
+
+		UpdateDialogue();
+
+		UpdateCamera(); 
+
+		UpdateHero(); 
+
+		UpdateOwl(); 
+		 
+		UpdateThief(); 
+
+
+		Draw(); 
+		 
+		obj_GroundCollision(TYPE_THIEF); 
+
+		obj_GroundCollision(TYPE_OWL);
+
+
+		Collision();
+
+		groundcollision();
+
+		BlockCollision();
+
+
+		CollectCoins();
+
+		thorncollision();
+
+		if (gamestate.gameOver)
+		{
+			gamestate.gamestage = GAME_OVER;
+		}
+
+		break; 
+
+	case GAME_OVER:
+
+		gameOver();  
+
+		Draw(); 
+
+		if (Play::KeyDown(VK_SPACE) )
+		{
+			Play::CreateGameObject(TYPE_HERO, { DISPLAY_WIDTH / 2, 100 }, 10, "Pink_Monster");  
+			map(); 
+
+			GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO); 
+
+			gamestate.gameOver = false; 
+			objectstate.CoinsCollected = 0; 
+			gamestate.SpriteHit = 0; 
+			gamestate.health = 10; 
+
+			gamestate.gamestage = STATE_START; 
+			obj_hero.pos = { -600, DISPLAY_HEIGHT - 100 }; 
+
+			UpdateCamera(); 
+
+		}
+		break; 
 	}
-	else
-	{
-		gamestate.Jtime = 0.0; 
-	}
 
-	UpdateDialogue();   
-	//Dialogue(); 
-
-	UpdateCamera();
-
-	UpdateHero();
-
-	UpdateOwl(); 
-
-	UpdateThief();  
-
-
-	Draw();
-
-	obj_GroundCollision(TYPE_THIEF); 
-
-	obj_GroundCollision(TYPE_OWL);  
-
-
-	Collision();
-
-	groundcollision();
-
-	BlockCollision();
-
-
-	CollectCoins(); 
-
-	thorncollision();   
 
 	return Play::KeyDown(VK_ESCAPE);
 
@@ -429,8 +496,8 @@ void UpdateHero()
 	switch (gamestate.herostate)
 	{
 	case STATE_IDLE:
-		Play::DrawFontText("64px", "PRESS ENTER TO START", { -450, DISPLAY_HEIGHT - 500 }, Play::CENTRE);
-		Play::PresentDrawingBuffer();
+	/*	Play::DrawFontText("64px", "PRESS ENTER TO START", { -450, DISPLAY_HEIGHT - 400 }, Play::CENTRE);
+		Play::PresentDrawingBuffer();*/
 
 		Play::SetSprite(obj_hero, "Pink_Monster", 0.05f);
 		obj_hero.pos = { -600, DISPLAY_HEIGHT - 100 };
@@ -464,7 +531,6 @@ void UpdateHero()
 		{
 			gamestate.herostate = STATE_DEAD; 
 		}
-
 		break;
 
 	case STATE_JUMP:
@@ -495,14 +561,15 @@ void UpdateHero()
 
 		if (Play::IsAnimationComplete(obj_hero))
 		{
-			gameOver(); 
+			gamestate.gameOver = true;  
 
 		}
 
 		if (Play::KeyDown(VK_SPACE))
 		{
-			gamestate.herostate = STATE_IDLE;
+			gamestate.herostate = STATE_IDLE; 
 		}
+
 		break; 
 	}
 
@@ -510,17 +577,17 @@ void UpdateHero()
 
 void gameOver()
 {
-	gamestate.gameOver = true; 
+	//gamestate.gameOver = true; 
 
 	Play::DestroyGameObjectsByType(TYPE_HERO); 
-	Play::DestroyGameObjectsByType(TYPE_THIEF);
-	Play::DestroyGameObjectsByType(TYPE_OWL);
+	//Play::DestroyGameObjectsByType(TYPE_THIEF);
+	//Play::DestroyGameObjectsByType(TYPE_OWL);
 	
 	Play::DestroyGameObjectsByType(TYPE_PLATFORM); 
-	Play::DestroyGameObjectsByType(TYPE_COIN);
+	Play::DestroyGameObjectsByType(TYPE_COIN); 
 	Play::DestroyGameObjectsByType(TYPE_BLOCK); 
 	Play::DestroyGameObjectsByType(TYPE_THORN);
-
+	Play::DestroyGameObjectsByType(TYPE_GROUND); 
 }
 
 void UpdateOwl()
