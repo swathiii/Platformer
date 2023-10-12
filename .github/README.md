@@ -6,3 +6,5 @@ The code is written entirely in C++ and uses the PlayBuffer Framework for game d
 3) The player can collect coins scattered throughout the level by colliding with them
 4) There are thorn hazards in the game that will damage the player upon collision.
 5) Dialogues appear when the player interacts with other NPCs in the game.
+
+![](/.github/images/Obi.gif) 
