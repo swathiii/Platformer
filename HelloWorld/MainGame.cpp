@@ -126,7 +126,6 @@ void UpdateThief();
 void UpdateDialogue();   
 void Dialogue(); 
 
-void UpdateControls(); 
 void Draw();
 
 void groundcollision();
@@ -250,6 +249,9 @@ bool MainGameUpdate(float elapsedTime)
 		Play::DestroyGameObjectsByType(TYPE_OWL);
 		Play::DestroyGameObjectsByType(TYPE_DIALOGUE); 
 
+		Play::DrawFontText("64px", "the end :)", { 150, DISPLAY_HEIGHT - 50 }, Play::CENTRE);
+		Play::PresentDrawingBuffer();
+
 		break; 
 
 	case GAME_OVER:
@@ -369,12 +371,12 @@ void Dialogue() // solve: multiple dialogues are created
 				Play::CreateGameObject(TYPE_DIALOGUE, { -630, 600 }, 10, "greet_2_1");
 			}
 
-			if (Play::IsColliding(obj_hero, obj_thief) && objectstate.CoinsCollected <= 6 )
+			if (Play::IsColliding(obj_hero, obj_thief) && objectstate.CoinsCollected <= 30 )
 			{
 				objectstate.bookmark = 10;
 			}
 
-			if (Play::IsColliding(obj_hero, obj_thief) && objectstate.CoinsCollected > 6)
+			if (Play::IsColliding(obj_hero, obj_thief) && objectstate.CoinsCollected > 30)
 			{
 				objectstate.bookmark = 15;
 			}
@@ -383,17 +385,17 @@ void Dialogue() // solve: multiple dialogues are created
 
 		case 10:
 
-			if (Play::IsColliding(obj_hero, obj_thief) && objectstate.CoinsCollected <=  6 )
+			if (Play::IsColliding(obj_hero, obj_thief) && objectstate.CoinsCollected <=  30 )
 			{
 				Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x , 450 }, 10, "greet_3_1");  
 			}
 
-			if (Play::IsColliding(obj_hero, obj_owl) && objectstate.CoinsCollected < 11 )
+			if (Play::IsColliding(obj_hero, obj_owl) && objectstate.CoinsCollected < 62 )
 			{
 				objectstate.bookmark = 5; 
 			}
 
-			if (Play::IsColliding(obj_hero, obj_thief) && objectstate.CoinsCollected > 6)
+			if (Play::IsColliding(obj_hero, obj_thief) && objectstate.CoinsCollected > 30)
 			{
 				objectstate.bookmark = 15;
 			}
@@ -402,17 +404,17 @@ void Dialogue() // solve: multiple dialogues are created
 
 		case 15:
 
-			if (Play::IsColliding(obj_hero, obj_thief) && objectstate.CoinsCollected > 6 && objectstate.CoinsCollected < 11)
+			if (Play::IsColliding(obj_hero, obj_thief) && objectstate.CoinsCollected > 6 && objectstate.CoinsCollected < 62)
 			{
 				Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x + 50, 600 }, 10, "greet_4_1");
 			}
 
-			if (Play::IsColliding(obj_hero, obj_owl) && objectstate.CoinsCollected < 11 )
+			if (Play::IsColliding(obj_hero, obj_owl) && objectstate.CoinsCollected < 62 )
 			{
 				objectstate.bookmark = 5;
 			}
 
-			if (Play::IsColliding(obj_hero, obj_thief) && objectstate.CoinsCollected == 11 )
+			if (Play::IsColliding(obj_hero, obj_thief) && objectstate.CoinsCollected == 62 )
 			{
 				objectstate.bookmark = 20;
 			}
@@ -420,12 +422,12 @@ void Dialogue() // solve: multiple dialogues are created
 
 		case 20:
 
-			if ((!objectstate.Coinsgiven && objectstate.CoinsCollected == 11 && Play::IsColliding(obj_hero, obj_thief))) 
+			if ((!objectstate.Coinsgiven && objectstate.CoinsCollected == 62 && Play::IsColliding(obj_hero, obj_thief)))
 			{
 				Play::CreateGameObject(TYPE_DIALOGUE, { obj_hero.pos.x - 150, obj_hero.pos.y - 50 }, 100, "greet_5_1");
 				objectstate.Coinsgiven = true;
 			}
-			else if (objectstate.Coinsgiven && objectstate.CoinsCollected == 11 && Play::IsColliding(obj_hero, obj_thief))	 
+			else if (objectstate.Coinsgiven && objectstate.CoinsCollected == 62 && Play::IsColliding(obj_hero, obj_thief))
 			{
 				Play::CreateGameObject(TYPE_DIALOGUE, { obj_thief.pos.x - 100 , obj_thief.pos.y - 150 }, 100, "greet_6_1");
 			}
@@ -688,57 +690,6 @@ void UpdateThief( )
 		Play::SetSprite(obj_thief, "Dude_Monster_Idle_4", 0.10f);
 		break;
 	}
-}
-
-
-void UpdateControls()
-{
-	GameObject& obj_hero = Play::GetGameObjectByType(TYPE_HERO);
-
-	//setting default velocity for the hero
-	obj_hero.velocity = { 0, 1.f };
-
-	//acceleration
-	obj_hero.acceleration = Vector2D(0.f, 0.1f);
-
-	obj_hero.pos += obj_hero.velocity;
-	obj_hero.velocity += obj_hero.acceleration;
-
-	if (Play::KeyPressed(VK_SPACE))
-	{
-		Jump(); 
-	}
-	else if (Play::KeyDown(VK_RIGHT))
-	{
-		Walk();
-	}
-	else if (Play::KeyDown(VK_LEFT))
-	{
-		Walk();
-	}
-	else if (Play::KeyDown(VK_DOWN))
-	{
-		obj_hero.velocity = { 0, 7 };
-	}
-	else if (Play::KeyDown(VK_F1))
-	{
-		obj_hero.pos = Vector2D(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 3);
-		//obj_agent.velocity = AGENT_VELOCITY_DEFAULT;
-	}
-	else
-	{
-		if (!gamestate.SpriteFaceLeft)
-		{
-			Play::SetSprite(obj_hero, "Pink_Monster_Idle_4", 0.05f);
-
-		}
-
-		if (gamestate.SpriteFaceLeft)
-		{
-			Play::SetSprite(obj_hero, "Pink_Monster_Idle_Left_4", 0.05f);
-		}
-	}
-	Play::UpdateGameObject(obj_hero);
 }
 
 void fall()
