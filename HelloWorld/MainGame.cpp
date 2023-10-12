@@ -1,3 +1,18 @@
+/**************************************************************************************************************************************************************************************************************************************************************
+Credits: 
+
+* Character sprites (Pink Monster, Owlet Monster and Dude Monster) taken from craftpix.net : https://craftpix.net/freebies/free-pixel-art-tiny-hero-sprites/?num=1&count=201&sq=pink%20monster&pos=4
+		License: https://craftpix.net/file-licenses/ 
+
+* Background: Garden's Forest by Gowl : https://gowldev.itch.io/gardens-forest 
+
+* Assets used for platforms, thorns, blocks and ground : Mossy Assets by Maaot:  https://maaot.itch.io/mossy-cavern
+
+* Final Photo edited on Piskel. 
+
+*************************************************************************************************************************************************************************************************************************************************************/
+
+
 #define PLAY_IMPLEMENTATION
 #define PLAY_USING_GAMEOBJECT_MANAGER
 #include "Play.h" 
