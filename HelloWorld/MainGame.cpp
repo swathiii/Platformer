@@ -1245,7 +1245,7 @@ void map()
 										createcoins(250, 310, 1);																	  createthorns(1050, 350, 1);										createcoins(1350, 350, 3);																						createthorns(1955, 350, 1);												createcoins(2300, 320, 1);
 										createblocks(250, 380);			/*createblocks(690, 380);*/				createcoins(850, 380, 4); createthorns(1050, 380, 1);				createthorns(1300, 380, 1);					createthorns(1500, 380, 1);			createblocks(1650, 380);								createthorns(1955, 380, 1);		createcoins(2000, 380, 4);			createblocks(2300, 380);	createcoins(2400, 420, 1);
 				createcoins(100, 410, 1);																							  createthorns(1050, 400, 1);									createplatforms(1400, 400);																							createthorns(1955, 400, 1);																			createblocks(2400, 480);	createcoins(2500, 520, 1);
-				createblocks(100, 480);																			createplatforms(950, 450);																																																		createplatforms(2050, 450);																				createblocks(2500, 580);	createcoins(2600, 620, 1);
+				createblocks(100, 480);																			createplatforms(950, 450);																																																		createplatforms(2050, 450);			createblocks(2200, 450);										createblocks(2500, 580);	createcoins(2600, 620, 1);
 																																																																																																																					createblocks(2600, 670);																																																																																																										
 																																		createthorns(1050, 500, 1);
 								createcoins(250, 500, 5);				createcoins(650, 400, 1);										createthorns(1050, 540, 1);
