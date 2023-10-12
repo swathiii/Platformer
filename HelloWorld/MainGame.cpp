@@ -1212,7 +1212,7 @@ void stats()
 	if (!gamestate.gameWon)
 	{
 		Play::DrawFontText("64px", "Arrow Keys to Move", Point2D(-700, 500), Play::LEFT);
-		Play::DrawFontText("64px", "Space to Jump", Point2D(-700, 450), Play::LEFT);
+		Play::DrawFontText("64px", "Space to Jump, Twice to Double Jump", Point2D(-700, 450), Play::LEFT);
 	}
 
 	//Play::SetDrawingSpace(Play::SCREEN);
